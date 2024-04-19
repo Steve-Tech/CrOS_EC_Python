@@ -3,8 +3,6 @@ import struct
 
 CROS_EC_IOC_MAGIC = 0xEC
 
-fd = open("/dev/cros_ec", "wb")
-
 
 def _IOC(dir: int, type: int, nr: int, size: int):
     """
@@ -31,11 +29,12 @@ def _IORW(type: int, nr: int, size: int):
     return _IOC((read | write), type, nr, size)
 
 
-def ec_command(
-    version: int, command: int, outsize: int, insize: int, data: bytes = None
+def ec_command_fd(
+    fd, version: int, command: int, outsize: int, insize: int, data: bytes = None
 ):
     """
     Send a command to the EC and return the response.
+    fd: File descriptor for the EC device.
     version: Command version number (often 0).
     command: Command to send (EC_CMD_...).
     outsize: Outgoing length in bytes.
@@ -49,8 +48,8 @@ def ec_command(
     buf = bytearray(cmd + bytes(max(outsize, insize)))
     buf[len(cmd) : len(cmd) + outsize] = data
 
-    CROS_EC_IORW = _IORW(CROS_EC_IOC_MAGIC, 0, len(cmd))
-    result = ioctl(fd, CROS_EC_IORW, buf)
+    CROS_EC_DEV_IOCXCMD = _IORW(CROS_EC_IOC_MAGIC, 0, len(cmd))
+    result = ioctl(fd, CROS_EC_DEV_IOCXCMD, buf)
 
     if result < 0:
         raise IOError(f"ioctl failed with error {result}")
@@ -59,3 +58,27 @@ def ec_command(
         raise IOError(f"expected {insize} bytes, got {result}")
 
     return bytes(buf[len(cmd) : len(cmd) + insize])
+
+def ec_command(version: int, command: int, outsize: int, insize: int, data: bytes = None):
+    """
+    Send a command to the EC and return the response.
+    version: Command version number (often 0).
+    command: Command to send (EC_CMD_...).
+    outsize: Outgoing length in bytes.
+    insize: Max number of bytes to accept from the EC.
+    data: Outgoing data to EC.
+    """
+    with open("/dev/cros_ec", "wb") as fd:
+        return ec_command_fd(fd, version, command, outsize, insize, data)
+    
+def ec_many_commands(commands: list[tuple[int, int, int, int, bytes]]):
+    """
+    Send multiple commands to the EC.
+    commands: List of commands to send. Each command is a tuple of arguments to ec_command.
+    """
+    results = []
+    with open("/dev/cros_ec", "wb") as fd:
+        for command in commands:
+            results.append(ec_command_fd(fd, *command))
+
+    return results
