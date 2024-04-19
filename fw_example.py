@@ -11,8 +11,9 @@ This example is for Framework laptops only.
 # An example with no input parameters
 
 try:
+    EC_CMD_PWM_GET_FAN_ACTUAL_RPM = 0x3E04
     # Send the command with no data, expect 2 bytes in response
-    response = ec_command(0, 0x3E04, 0, 2, None)
+    response = ec_command(0, EC_CMD_PWM_GET_FAN_ACTUAL_RPM, 0, 2, None)
     # Side note: This is supposed to be 4 bytes (32-bit),
     # but the EC only returns 2 bytes, and sometimes 0 bytes?
 
@@ -33,8 +34,9 @@ get_level = True
 data = struct.pack("<BB", set_level, get_level)
 
 try:
+    EC_CMD_FP_LED_LEVEL_CONTROL = 0x3E0E
     # Send the command, expect 1 byte in response
-    response = ec_command(0, 0x3E0E, len(data), 1, data)
+    response = ec_command(0, EC_CMD_FP_LED_LEVEL_CONTROL, len(data), 1, data)
 
     # Output is an 8-bit unsigned integer, so we don't need to unpack it
     print(f"Fingerprint LED Brightness: {response[0]}")
