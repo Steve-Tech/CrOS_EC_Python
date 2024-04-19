@@ -3,6 +3,8 @@ import struct
 
 CROS_EC_IOC_MAGIC = 0xEC
 
+readmem_ioctl = True
+
 
 def _IOC(dir: int, type: int, nr: int, size: int):
     """
@@ -59,7 +61,10 @@ def ec_command_fd(
 
     return bytes(buf[len(cmd) : len(cmd) + insize])
 
-def ec_command(version: int, command: int, outsize: int, insize: int, data: bytes = None):
+
+def ec_command(
+    version: int, command: int, outsize: int, insize: int, data: bytes = None
+):
     """
     Send a command to the EC and return the response.
     version: Command version number (often 0).
@@ -70,7 +75,8 @@ def ec_command(version: int, command: int, outsize: int, insize: int, data: byte
     """
     with open("/dev/cros_ec", "wb") as fd:
         return ec_command_fd(fd, version, command, outsize, insize, data)
-    
+
+
 def ec_many_commands(commands: list[tuple[int, int, int, int, bytes]]):
     """
     Send multiple commands to the EC.
@@ -82,3 +88,52 @@ def ec_many_commands(commands: list[tuple[int, int, int, int, bytes]]):
             results.append(ec_command_fd(fd, *command))
 
     return results
+
+
+def ec_readmem_fd(fd, offset: int, num_bytes: int):
+    """
+    Read memory from the EC.
+    fd: File descriptor for the EC device.
+    offset: Offset to read from.
+    num_bytes: Number of bytes to read.
+    """
+    global readmem_ioctl
+    EC_MEMMAP_SIZE = 255
+    if readmem_ioctl:
+        data = struct.pack("<II", offset, num_bytes)
+        buf = bytearray(data + bytes(num_bytes))
+        CROS_EC_DEV_IOCRDMEM = _IORW(
+            CROS_EC_IOC_MAGIC, 1, len(data) + EC_MEMMAP_SIZE + 1
+        )
+        try:
+            result = ioctl(fd, CROS_EC_DEV_IOCRDMEM, buf)
+
+            if result < 0:
+                raise IOError(f"ioctl failed with error {result}")
+
+            if result != num_bytes:
+                raise IOError(f"expected {num_bytes} bytes, got {result}")
+
+            return buf[len(data) : len(data) + num_bytes]
+        except OSError as e:
+            if e.errno == 25:
+                print(e)
+                readmem_ioctl = False
+                return ec_readmem_fd(fd, offset, num_bytes)
+            else:
+                raise e
+    else:
+        # This is untested!
+        data = struct.pack("<BB", offset, num_bytes)
+        buf = ec_command(0, 0x07, len(data), num_bytes, data)
+        return buf[len(data) : len(data) + num_bytes]
+
+
+def ec_readmem(offset: int, num_bytes: int):
+    """
+    Read memory from the EC.
+    offset: Offset to read from.
+    num_bytes: Number of bytes to read.
+    """
+    with open("/dev/cros_ec", "wb") as fd:
+        return ec_readmem_fd(fd, offset, num_bytes)
