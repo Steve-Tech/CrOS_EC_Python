@@ -1,7 +1,20 @@
-from typing import Final
+from typing import Final, Literal
+import struct
 from ..cros_ec import CrOS_EC
 from ..constants.COMMON import *
-import struct
+
+EC_CMD_PROTO_VERSION: Final = 0x0000
+
+
+def proto_version(ec: CrOS_EC) -> UInt32:
+    """
+    Get protocol version, used to deal with non-backward compatible protocol changes.
+    @param ec: The CrOS_EC object.
+    @return: The protocol version as a uint32.
+    """
+    resp = ec.command(0, EC_CMD_PROTO_VERSION, 0, 4)
+    return struct.unpack("<I", resp)[0]
+
 
 EC_CMD_HELLO: Final = 0x0001
 
@@ -16,3 +29,149 @@ def hello(ec: CrOS_EC, in_data: UInt32) -> UInt32:
     data = struct.pack("<I", in_data)
     resp = ec.command(0, EC_CMD_HELLO, len(data), 4, data)
     return struct.unpack("<I", resp)[0]
+
+
+EC_CMD_GET_VERSION: Final = 0x0002
+
+
+def get_version(ec: CrOS_EC, version: Literal[0, 1] = 0) -> dict[str, str | int]:
+    """
+    Get version number
+    @param ec: The CrOS_EC object.
+    @param version: The command version to use. Default is 0.
+    @return: The EC version as strings, and the RW status.
+    """
+    match version:
+        case 0:
+            resp = ec.command(version, EC_CMD_GET_VERSION, 0, 32 + 32 + 32 + 4)
+            unpacked = struct.unpack("<32s32s32sI", resp)
+            return {
+                "version_string_ro": unpacked[0].decode("utf-8").strip("\x00"),
+                "version_string_rw": unpacked[1].decode("utf-8").strip("\x00"),
+                "reserved": unpacked[2].decode("utf-8").strip("\x00"),
+                "current_image": unpacked[3]
+            }
+        case 1:
+            resp = ec.command(version, EC_CMD_GET_VERSION, 0, 32 + 32 + 32 + 4 + 32)
+            unpacked = struct.unpack("<32s32s32sI32s", resp)
+            return {
+                "version_string_ro": unpacked[0].decode("utf-8").strip("\x00"),
+                "version_string_rw": unpacked[1].decode("utf-8").strip("\x00"),
+                "cros_fwid_ro": unpacked[2].decode("utf-8").strip("\x00"),
+                "current_image": unpacked[3],
+                "crod_fwid_rw": unpacked[4].decode("utf-8").strip("\x00")
+            }
+        case _:
+            raise NotImplementedError
+
+
+# Read test - OBSOLETE
+EC_CMD_READ_TEST: Final = 0x0003
+
+EC_CMD_GET_BUILD_INFO: Final = 0x0004
+
+
+def get_build_info(ec: CrOS_EC) -> str:
+    """
+    Get build information
+    @param ec: The CrOS_EC object.
+    @return: The build info as a string.
+    """
+    resp = ec.command(0, EC_CMD_GET_BUILD_INFO, 0, 0xfc)
+    return resp.decode("utf-8").strip("\x00")
+
+
+EC_CMD_GET_CHIP_INFO: Final = 0x0005
+
+
+def get_chip_info(ec: CrOS_EC) -> dict[str, str]:
+    """
+    Get chip info
+    @param ec: The CrOS_EC object.
+    @return: The chip vendor, name, and revision as strings.
+    """
+    resp = ec.command(0, EC_CMD_GET_CHIP_INFO, 0, 32 + 32 + 32)
+    unpacked = struct.unpack("<32s32s32s", resp)
+    return {
+        "vendor": unpacked[0].decode("utf-8").strip("\x00"),
+        "name": unpacked[1].decode("utf-8").strip("\x00"),
+        "revision": unpacked[2].decode("utf-8").strip("\x00")
+    }
+
+
+EC_CMD_GET_BOARD_VERSION: Final = 0x0006
+
+
+def get_board_version(ec: CrOS_EC) -> UInt16:
+    """
+    Get board HW version
+    @param ec: The CrOS_EC object.
+    @return: The board version as a uint16.
+    """
+    resp = ec.command(0, EC_CMD_GET_BOARD_VERSION, 0, 2)
+    return struct.unpack("<H", resp)[0]
+
+
+# use the CrOS_EC.memmap method instead
+EC_CMD_READ_MEMMAP: Final = 0x0007
+
+EC_CMD_GET_CMD_VERSIONS: Final = 0x0008
+
+
+def get_cmd_versions(ec: CrOS_EC, cmd: UInt8 | UInt16, version: Literal[0, 1] | None = None) -> UInt32:
+    """
+    Read versions supported for a command.
+    @param ec: The CrOS_EC object.
+    @param cmd: The command to get the supported versions of.
+    @param version: The command version to use. Default is guess. 0 supports 8 bit commands, 1 supports 16 bit commands.
+    @return: The supported versions as a bitmask. Bit 0 is version 0, bit 1 is version 1, etc.
+    """
+    if version is None:
+        version = int(cmd > 0xFF)
+    match version:
+        case 0:
+            resp = ec.command(version, EC_CMD_GET_CMD_VERSIONS, 1, 4, struct.pack("<B", cmd))
+            return struct.unpack("<I", resp)[0]
+        case 1:
+            resp = ec.command(version, EC_CMD_GET_CMD_VERSIONS, 2, 4, struct.pack("<H", cmd))
+            return struct.unpack("<I", resp)[0]
+        case _:
+            raise NotImplementedError
+
+
+EC_CMD_GET_COMMS_STATUS: Final = 0x0009
+
+EC_CMD_TEST_PROTOCOL: Final = 0x000A
+
+
+def test_protocol(ec: CrOS_EC, result: UInt32, ret_len: UInt32, buf: bytes) -> bytes:
+    """
+    Fake a variety of responses, purely for testing purposes.
+    @param ec: The CrOS_EC object.
+    @param result: Result for the EC to return.
+    @param ret_len: Length of return data.
+    @param buf: Data to return. Max length is 32 bytes.
+    @return: The data returned.
+    """
+    data = struct.pack("<II", result, ret_len) + buf
+    resp = ec.command(0, EC_CMD_TEST_PROTOCOL, len(data), ret_len, data)
+    return resp
+
+
+EC_CMD_GET_PROTOCOL_INFO: Final = 0x000B
+
+
+def get_protocol_info(ec: CrOS_EC) -> dict[str, int]:
+    """
+    Get protocol info
+    @param ec: The CrOS_EC object.
+    @return: The protocol info as a dictionary.
+    """
+    resp = ec.command(0, EC_CMD_GET_PROTOCOL_INFO, 0, 12)
+    unpacked = struct.unpack("<IHHI", resp)
+    return {
+        "protocol_versions": unpacked[0],
+        "max_request_packet_size": unpacked[1],
+        "max_response_packet_size": unpacked[2],
+        "flags": unpacked[3]
+    }

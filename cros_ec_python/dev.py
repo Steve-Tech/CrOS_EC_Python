@@ -1,6 +1,7 @@
 from fcntl import ioctl
 import struct
 from typing import Final
+from sys import stderr
 from .constants.COMMON import *
 
 CROS_EC_IOC_MAGIC: Final = 0xEC
@@ -41,7 +42,7 @@ def ec_command_fd(
     @param version: Command version number (often 0).
     @param command: Command to send (EC_CMD_...).
     @param outsize: Outgoing length in bytes.
-    @param insize: Max number of bytes to accept from the EC. None for unlimited.
+    @param insize: Max number of bytes to accept from the EC.
     @param data: Outgoing data to EC.
     @return: Incoming data from EC.
     """
@@ -58,8 +59,8 @@ def ec_command_fd(
     if result < 0:
         raise IOError(f"ioctl failed with error {result}")
 
-    if result != insize and insize is not None:
-        raise IOError(f"expected {insize} bytes, got {result}")
+    if result != insize:
+        print(f"WARNING: expected {insize} bytes, got {result}", file=stderr)
 
     return bytes(buf[len(cmd): len(cmd) + insize])
 
@@ -103,7 +104,7 @@ def ec_readmem_fd(fd, offset: Int32, num_bytes: Int32) -> bytes:
                 raise IOError(f"ioctl failed with error {result}")
 
             if result != num_bytes:
-                raise IOError(f"expected {num_bytes} bytes, got {result}")
+                print(f"WARNING: expected {num_bytes} bytes, got {result}", file=stderr)
 
             return buf[len(data): len(data) + num_bytes]
         except OSError as e:
