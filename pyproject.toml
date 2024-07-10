@@ -6,14 +6,19 @@ authors = [
 ]
 description = "A Python library for interacting with a Chrome OS EC."
 readme = "README.md"
-requires-python = ">=3.5"
+requires-python = ">=3.10"
 classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
     "Operating System :: POSIX :: Linux",
     "Topic :: System :: Hardware",
 ]
 
+[project.optional-dependencies]
+lpc = ["portio"]
+
 [project.urls]
-Homepage = "https://github.com/Steve-Tech/CrOS-EC-Python"
+Repository = "https://github.com/Steve-Tech/CrOS-EC-Python"
 Issues = "https://github.com/Steve-Tech/CrOS-EC-Python/issues"

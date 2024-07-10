@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import struct
-from cros_ec_python.cros_ec import ec_command, ec_readmem
+from cros_ec_python import CrOS_EC
 
 """
 An example script to demonstrate how to use the cros_ec_python package to communicate with the EC.
 """
+
+ec = CrOS_EC()
 
 # --- Temperature Sensors ---
 # An example that uses the ec memory map to read the temperature sensors
@@ -15,7 +17,7 @@ try:
     EC_TEMP_SENSOR_ENTRIES = 16
     EC_TEMP_SENSOR_B_ENTRIES = 8
 
-    response = ec_readmem(EC_MEMMAP_TEMP_SENSOR, EC_TEMP_SENSOR_ENTRIES * 1)
+    response = ec.memmap(EC_MEMMAP_TEMP_SENSOR, EC_TEMP_SENSOR_ENTRIES * 1)
     temps = struct.unpack("<16B", response)
 
     EC_TEMP_SENSOR_OFFSET = 200
@@ -36,7 +38,7 @@ except IOError as e:
 try:
     EC_MEMMAP_FAN = 0x10
     EC_FAN_SPEED_ENTRIES = 4
-    response = ec_readmem(EC_MEMMAP_FAN, EC_FAN_SPEED_ENTRIES * 2)
+    response = ec.memmap(EC_MEMMAP_FAN, EC_FAN_SPEED_ENTRIES * 2)
     fans = struct.unpack("<4H", response)
 
     for i, fan in enumerate(fans):
@@ -54,7 +56,7 @@ except IOError as e:
 try:
     EC_CMD_PWM_GET_FAN_TARGET_RPM = 0x0020
     # Send the command with no data, expect 4 bytes in response
-    response = ec_command(0, EC_CMD_PWM_GET_FAN_TARGET_RPM, 0, 4, None)
+    response = ec.command(0, EC_CMD_PWM_GET_FAN_TARGET_RPM, 0, 4, None)
 
     # Unpack the 4 bytes into a 32-bit unsigned integer
     fan_speed = struct.unpack("<I", response)[0]
@@ -77,7 +79,7 @@ if percent_in := input("Enter fan speed [0-100]: "):
     try:
         EC_CMD_PWM_SET_FAN_DUTY = 0x0024
         # Send the command, expect 0 bytes in response
-        response = ec_command(0, EC_CMD_PWM_SET_FAN_DUTY, len(data), 0, data)
+        response = ec.command(0, EC_CMD_PWM_SET_FAN_DUTY, len(data), 0, data)
         print("Fan duty set successfully")
 
     except IOError as e:
@@ -85,7 +87,7 @@ if percent_in := input("Enter fan speed [0-100]: "):
 
 # --- Auto Fan Control ---
 # So people can reset their fan control, but also it's a version 1 command
-if input("Auto fan control [Y/n]: ").lower() == "y":
+if input("Auto fan control [y/N]: ").lower() == "y":
     # Input Parameters
     fan_idx = 0
 
@@ -95,8 +97,23 @@ if input("Auto fan control [Y/n]: ").lower() == "y":
     try:
         EC_CMD_THERMAL_AUTO_FAN_CTRL = 0x0052
         # Send the command (v1) with no data, expect 0 bytes in response
-        response = ec_command(1, EC_CMD_THERMAL_AUTO_FAN_CTRL, len(data), 0, data)
+        response = ec.command(1, EC_CMD_THERMAL_AUTO_FAN_CTRL, len(data), 0, data)
         print("Fan control set to auto")
 
     except IOError as e:
         print("Couldn't set fan control:", e)
+
+# --- LED Brightness ---
+led_id = 0
+flags = 2
+brightness = [0x0, 0x0, 0x0, 0x0, 0x0, 0x0]
+data = struct.pack("<BB6B", led_id, flags, *brightness)
+
+try:
+    EC_CMD_LED_CONTROL = 0x0029
+    # Send the command, expect 6 bytes in response
+    response = ec.command(1, EC_CMD_LED_CONTROL, len(data), 6, data)
+    print("LED brightness set successfully")
+
+except IOError as e:
+    print("Couldn't set LED brightness:", e)

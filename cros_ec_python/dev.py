@@ -1,7 +1,8 @@
 from fcntl import ioctl
 import struct
+from typing import Final
 
-CROS_EC_IOC_MAGIC = 0xEC
+CROS_EC_IOC_MAGIC: Final = 0xEC
 
 readmem_ioctl = True
 
@@ -33,14 +34,14 @@ def _IORW(type: int, nr: int, size: int):
 
 def ec_command_fd(
     fd, version: int, command: int, outsize: int, insize: int, data: bytes = None
-):
+) -> bytes:
     """
     Send a command to the EC and return the response.
     fd: File descriptor for the EC device.
     version: Command version number (often 0).
     command: Command to send (EC_CMD_...).
     outsize: Outgoing length in bytes.
-    insize: Max number of bytes to accept from the EC.
+    insize: Max number of bytes to accept from the EC. None for unlimited.
     data: Outgoing data to EC.
     """
     if data is None:
@@ -56,7 +57,7 @@ def ec_command_fd(
     if result < 0:
         raise IOError(f"ioctl failed with error {result}")
 
-    if result != insize:
+    if result != insize and insize is not None:
         raise IOError(f"expected {insize} bytes, got {result}")
 
     return bytes(buf[len(cmd) : len(cmd) + insize])
@@ -64,33 +65,20 @@ def ec_command_fd(
 
 def ec_command(
     version: int, command: int, outsize: int, insize: int, data: bytes = None
-):
+) -> bytes:
     """
     Send a command to the EC and return the response.
     version: Command version number (often 0).
     command: Command to send (EC_CMD_...).
     outsize: Outgoing length in bytes.
-    insize: Max number of bytes to accept from the EC.
+    insize: Max number of bytes to accept from the EC. None for unlimited.
     data: Outgoing data to EC.
     """
     with open("/dev/cros_ec", "wb") as fd:
         return ec_command_fd(fd, version, command, outsize, insize, data)
 
 
-def ec_many_commands(commands: list[tuple[int, int, int, int, bytes]]):
-    """
-    Send multiple commands to the EC.
-    commands: List of commands to send. Each command is a tuple of arguments to ec_command.
-    """
-    results = []
-    with open("/dev/cros_ec", "wb") as fd:
-        for command in commands:
-            results.append(ec_command_fd(fd, *command))
-
-    return results
-
-
-def ec_readmem_fd(fd, offset: int, num_bytes: int):
+def ec_readmem_fd(fd, offset: int, num_bytes: int) -> bytes:
     """
     Read memory from the EC.
     fd: File descriptor for the EC device.
@@ -129,7 +117,7 @@ def ec_readmem_fd(fd, offset: int, num_bytes: int):
         return buf[len(data) : len(data) + num_bytes]
 
 
-def ec_readmem(offset: int, num_bytes: int):
+def ec_readmem(offset: int, num_bytes: int) -> bytes:
     """
     Read memory from the EC.
     offset: Offset to read from.
