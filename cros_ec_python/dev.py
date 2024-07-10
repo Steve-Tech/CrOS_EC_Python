@@ -1,6 +1,7 @@
 from fcntl import ioctl
 import struct
 from typing import Final
+from .constants.COMMON import *
 
 CROS_EC_IOC_MAGIC: Final = 0xEC
 
@@ -33,7 +34,7 @@ def _IORW(type: int, nr: int, size: int):
 
 
 def ec_command_fd(
-        fd, version: int, command: int, outsize: int, insize: int, data: bytes = None
+        fd, version: Int32, command: Int32, outsize: Int32, insize: Int32, data: bytes = None
 ) -> bytes:
     """Send a command to the EC and return the response.
     @param fd: File descriptor for the EC device.
@@ -64,7 +65,7 @@ def ec_command_fd(
 
 
 def ec_command(
-        version: int, command: int, outsize: int, insize: int, data: bytes = None
+        version: Int32, command: Int32, outsize: Int32, insize: Int32, data: bytes = None
 ) -> bytes:
     """
     Send a command to the EC and return the response.
@@ -79,7 +80,7 @@ def ec_command(
         return ec_command_fd(fd, version, command, outsize, insize, data)
 
 
-def ec_readmem_fd(fd, offset: int, num_bytes: int) -> bytes:
+def ec_readmem_fd(fd, offset: Int32, num_bytes: Int32) -> bytes:
     """
     Read memory from the EC.
     @param fd: File descriptor for the EC device.
@@ -119,7 +120,7 @@ def ec_readmem_fd(fd, offset: int, num_bytes: int) -> bytes:
         return buf[len(data): len(data) + num_bytes]
 
 
-def ec_readmem(offset: int, num_bytes: int) -> bytes:
+def ec_readmem(offset: Int32, num_bytes: Int32) -> bytes:
     """
     Read memory from the EC.
     @param offset: Offset to read from.

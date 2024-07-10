@@ -1,5 +1,6 @@
 from enum import Enum
 from . import dev, lpc
+from .constants.COMMON import *
 
 
 class DeviceTypes(Enum):
@@ -33,7 +34,7 @@ class CrOS_EC:
             case _:
                 raise NotImplementedError
 
-    def command(self, version: int, command: int, outsize: int, insize: int, data: bytes = None) -> bytes:
+    def command(self, version: Int32, command: Int32, outsize: Int32, insize: Int32, data: bytes = None) -> bytes:
         """
         Send a command to the EC and return the response.
         @param version: Command version number (often 0).
@@ -49,7 +50,7 @@ class CrOS_EC:
             case _:
                 raise NotImplementedError
 
-    def memmap(self, offset: int, num_bytes: int) -> bytes:
+    def memmap(self, offset: Int32, num_bytes: Int32) -> bytes:
         """
         Read memory from the EC.
         @param offset: Offset to read from.
