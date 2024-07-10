@@ -33,23 +33,23 @@ def _IORW(type: int, nr: int, size: int):
 
 
 def ec_command_fd(
-    fd, version: int, command: int, outsize: int, insize: int, data: bytes = None
+        fd, version: int, command: int, outsize: int, insize: int, data: bytes = None
 ) -> bytes:
-    """
-    Send a command to the EC and return the response.
-    fd: File descriptor for the EC device.
-    version: Command version number (often 0).
-    command: Command to send (EC_CMD_...).
-    outsize: Outgoing length in bytes.
-    insize: Max number of bytes to accept from the EC. None for unlimited.
-    data: Outgoing data to EC.
+    """Send a command to the EC and return the response.
+    @param fd: File descriptor for the EC device.
+    @param version: Command version number (often 0).
+    @param command: Command to send (EC_CMD_...).
+    @param outsize: Outgoing length in bytes.
+    @param insize: Max number of bytes to accept from the EC. None for unlimited.
+    @param data: Outgoing data to EC.
+    @return: Incoming data from EC.
     """
     if data is None:
         data = bytes(outsize)
 
     cmd = struct.pack(f"<IIIII", version, command, outsize, insize, 0xFF)
     buf = bytearray(cmd + bytes(max(outsize, insize)))
-    buf[len(cmd) : len(cmd) + outsize] = data
+    buf[len(cmd): len(cmd) + outsize] = data
 
     CROS_EC_DEV_IOCXCMD = _IORW(CROS_EC_IOC_MAGIC, 0, len(cmd))
     result = ioctl(fd, CROS_EC_DEV_IOCXCMD, buf)
@@ -60,19 +60,20 @@ def ec_command_fd(
     if result != insize and insize is not None:
         raise IOError(f"expected {insize} bytes, got {result}")
 
-    return bytes(buf[len(cmd) : len(cmd) + insize])
+    return bytes(buf[len(cmd): len(cmd) + insize])
 
 
 def ec_command(
-    version: int, command: int, outsize: int, insize: int, data: bytes = None
+        version: int, command: int, outsize: int, insize: int, data: bytes = None
 ) -> bytes:
     """
     Send a command to the EC and return the response.
-    version: Command version number (often 0).
-    command: Command to send (EC_CMD_...).
-    outsize: Outgoing length in bytes.
-    insize: Max number of bytes to accept from the EC. None for unlimited.
-    data: Outgoing data to EC.
+    @param version: Command version number (often 0).
+    @param command: Command to send (EC_CMD_...).
+    @param outsize: Outgoing length in bytes.
+    @param insize: Max number of bytes to accept from the EC. None for unlimited.
+    @param data: Outgoing data to EC.
+    @return: Incoming data from EC.
     """
     with open("/dev/cros_ec", "wb") as fd:
         return ec_command_fd(fd, version, command, outsize, insize, data)
@@ -81,9 +82,10 @@ def ec_command(
 def ec_readmem_fd(fd, offset: int, num_bytes: int) -> bytes:
     """
     Read memory from the EC.
-    fd: File descriptor for the EC device.
-    offset: Offset to read from.
-    num_bytes: Number of bytes to read.
+    @param fd: File descriptor for the EC device.
+    @param offset: Offset to read from.
+    @param num_bytes: Number of bytes to read.
+    @return: Bytes read from the EC.
     """
     global readmem_ioctl
     EC_MEMMAP_SIZE = 255
@@ -102,7 +104,7 @@ def ec_readmem_fd(fd, offset: int, num_bytes: int) -> bytes:
             if result != num_bytes:
                 raise IOError(f"expected {num_bytes} bytes, got {result}")
 
-            return buf[len(data) : len(data) + num_bytes]
+            return buf[len(data): len(data) + num_bytes]
         except OSError as e:
             if e.errno == 25:
                 print(e)
@@ -114,14 +116,15 @@ def ec_readmem_fd(fd, offset: int, num_bytes: int) -> bytes:
         # This is untested!
         data = struct.pack("<BB", offset, num_bytes)
         buf = ec_command(0, 0x07, len(data), num_bytes, data)
-        return buf[len(data) : len(data) + num_bytes]
+        return buf[len(data): len(data) + num_bytes]
 
 
 def ec_readmem(offset: int, num_bytes: int) -> bytes:
     """
     Read memory from the EC.
-    offset: Offset to read from.
-    num_bytes: Number of bytes to read.
+    @param offset: Offset to read from.
+    @param num_bytes: Number of bytes to read.
+    @return: Bytes read from the EC.
     """
     with open("/dev/cros_ec", "wb") as fd:
         return ec_readmem_fd(fd, offset, num_bytes)

@@ -1,1 +1,1 @@
-BIT = lambda nr : 1 << nr
+BIT = lambda nr: 1 << nr
