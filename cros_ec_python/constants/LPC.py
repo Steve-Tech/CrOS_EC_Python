@@ -41,3 +41,38 @@ EC_LPC_CMDR_SCI		: Final = BIT(5)  # SCI event is pending
 EC_LPC_CMDR_SMI		: Final = BIT(6)  # SMI event is pending
 
 EC_LPC_ADDR_MEMMAP       : Final = 0x900
+
+
+# Value written to legacy command port / prefix byte to indicate protocol
+# 3+ structs are being used.  Usage is bus-dependent.
+
+EC_COMMAND_PROTOCOL_3: Final = 0xda
+
+EC_HOST_REQUEST_VERSION: Final = 3
+
+EC_HOST_RESPONSE_VERSION: Final = 3
+
+
+# LPC command status byte masks
+# EC has written a byte in the data register and host hasn't read it yet
+EC_LPC_STATUS_TO_HOST     :Final = 0x01
+# Host has written a command/data byte and the EC hasn't read it yet
+EC_LPC_STATUS_FROM_HOST   :Final = 0x02
+# EC is processing a command
+EC_LPC_STATUS_PROCESSING  :Final = 0x04
+# Last write to EC was a command, not data
+EC_LPC_STATUS_LAST_CMD    :Final = 0x08
+# EC is in burst mode
+EC_LPC_STATUS_BURST_MODE  :Final = 0x10
+# SCI event is pending (requesting SCI query)
+EC_LPC_STATUS_SCI_PENDING :Final = 0x20
+# SMI event is pending (requesting SMI query)
+EC_LPC_STATUS_SMI_PENDING :Final = 0x40
+# (reserved)
+EC_LPC_STATUS_RESERVED    :Final = 0x80
+
+
+# EC is busy.  This covers both the EC processing a command, and the host has
+# written a new command but the EC hasn't picked it up yet.
+
+EC_LPC_STATUS_BUSY_MASK :Final = EC_LPC_STATUS_FROM_HOST | EC_LPC_STATUS_PROCESSING

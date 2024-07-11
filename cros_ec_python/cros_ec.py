@@ -60,7 +60,7 @@ class CrOS_EC:
         @param version: Command version number (often 0).
         @param command: Command to send (EC_CMD_...).
         @param outsize: Outgoing length in bytes.
-        @param insize: Max number of bytes to accept from the EC. None for unlimited.
+        @param insize: Max number of bytes to accept from the EC.
         @param data: Outgoing data to EC.
         @param warn: Whether to warn if the response size is not as expected. Default is True.
         @return: Response from the EC.
@@ -68,6 +68,8 @@ class CrOS_EC:
         match self.dev_type:
             case DeviceTypes.LinuxDev:
                 return dev.ec_command_fd(self.kwargs["fd"], version, command, outsize, insize, data, warn)
+            case DeviceTypes.LPC:
+                return lpc.ec_command(version, command, outsize, insize, data, warn)
             case _:
                 raise NotImplementedError
 

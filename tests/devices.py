@@ -16,9 +16,9 @@ class TestLinuxDev(unittest.TestCase):
         self.assertEqual(resp, b'EC')
 
     def test3_hello(self):
-        data = b'ECEC'
+        data = b'\xa0\xb0\xc0\xd0'
         resp = ec.command(0, general.EC_CMD_HELLO, len(data), 4, data)
-        self.assertEqual(resp, (int.from_bytes(data, "little") + 0x01020304).to_bytes(4, "little"))
+        self.assertEqual(resp, b'\xa4\xb3\xc2\xd1')
 
 
 class TestLPC(unittest.TestCase):
@@ -31,11 +31,10 @@ class TestLPC(unittest.TestCase):
         resp = ec.memmap(MEMMAP.EC_MEMMAP_ID, 2)
         self.assertEqual(resp, b'EC')
 
-    @unittest.skip("Not implemented")
     def test3_hello(self):
-        data = b'ECEC'
+        data = b'\xa0\xb0\xc0\xd0'
         resp = ec.command(0, general.EC_CMD_HELLO, len(data), 4, data)
-        self.assertEqual(resp, (int.from_bytes(data, "little") + 0x01020304).to_bytes(4, "little"))
+        self.assertEqual(resp, b'\xa4\xb3\xc2\xd1')
 
 
 if __name__ == '__main__':
