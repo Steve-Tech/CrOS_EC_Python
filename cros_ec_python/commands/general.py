@@ -46,20 +46,20 @@ def get_version(ec: CrOS_EC, version: Literal[0, 1] = 0) -> dict[str, str | int]
             resp = ec.command(version, EC_CMD_GET_VERSION, 0, 32 + 32 + 32 + 4)
             unpacked = struct.unpack("<32s32s32sI", resp)
             return {
-                "version_string_ro": unpacked[0].decode("utf-8").strip("\x00"),
-                "version_string_rw": unpacked[1].decode("utf-8").strip("\x00"),
-                "reserved": unpacked[2].decode("utf-8").strip("\x00"),
+                "version_string_ro": unpacked[0].decode("utf-8").rstrip("\x00"),
+                "version_string_rw": unpacked[1].decode("utf-8").rstrip("\x00"),
+                "reserved": unpacked[2].decode("utf-8").rstrip("\x00"),
                 "current_image": unpacked[3]
             }
         case 1:
             resp = ec.command(version, EC_CMD_GET_VERSION, 0, 32 + 32 + 32 + 4 + 32)
             unpacked = struct.unpack("<32s32s32sI32s", resp)
             return {
-                "version_string_ro": unpacked[0].decode("utf-8").strip("\x00"),
-                "version_string_rw": unpacked[1].decode("utf-8").strip("\x00"),
-                "cros_fwid_ro": unpacked[2].decode("utf-8").strip("\x00"),
+                "version_string_ro": unpacked[0].decode("utf-8").rstrip("\x00"),
+                "version_string_rw": unpacked[1].decode("utf-8").rstrip("\x00"),
+                "cros_fwid_ro": unpacked[2].decode("utf-8").rstrip("\x00"),
                 "current_image": unpacked[3],
-                "crod_fwid_rw": unpacked[4].decode("utf-8").strip("\x00")
+                "crod_fwid_rw": unpacked[4].decode("utf-8").rstrip("\x00")
             }
         case _:
             raise NotImplementedError
@@ -78,7 +78,7 @@ def get_build_info(ec: CrOS_EC) -> str:
     @return: The build info as a string.
     """
     resp = ec.command(0, EC_CMD_GET_BUILD_INFO, 0, 0xfc, warn=False)
-    return resp.decode("utf-8").strip("\x00")
+    return resp.decode("utf-8").rstrip("\x00")
 
 
 EC_CMD_GET_CHIP_INFO: Final = 0x0005
@@ -93,9 +93,9 @@ def get_chip_info(ec: CrOS_EC) -> dict[str, str]:
     resp = ec.command(0, EC_CMD_GET_CHIP_INFO, 0, 32 + 32 + 32)
     unpacked = struct.unpack("<32s32s32s", resp)
     return {
-        "vendor": unpacked[0].decode("utf-8").strip("\x00"),
-        "name": unpacked[1].decode("utf-8").strip("\x00"),
-        "revision": unpacked[2].decode("utf-8").strip("\x00")
+        "vendor": unpacked[0].decode("utf-8").rstrip("\x00"),
+        "name": unpacked[1].decode("utf-8").rstrip("\x00"),
+        "revision": unpacked[2].decode("utf-8").rstrip("\x00")
     }
 
 

@@ -8,7 +8,7 @@ EC_MEMMAP_TEXT_MAX     : Final = 8   # Size of a string in the memory map
 EC_MEMMAP_TEMP_SENSOR      : Final = 0x00 # Temp sensors 0x00 - 0x0f
 EC_MEMMAP_FAN              : Final = 0x10 # Fan speeds 0x10 - 0x17
 EC_MEMMAP_TEMP_SENSOR_B    : Final = 0x18 # More temp sensors 0x18 - 0x1f
-EC_MEMMAP_ID               : Final = 0x20 # 0x20 : Final =: Final = 'E', 0x21 : Final =: Final = 'C'
+EC_MEMMAP_ID               : Final = 0x20 # 0x20 == 'E', 0x21 == 'C'
 EC_MEMMAP_ID_VERSION       : Final = 0x22 # Version of data in 0x20 - 0x2f
 EC_MEMMAP_THERMAL_VERSION  : Final = 0x23 # Version of data in 0x00 - 0x1f
 EC_MEMMAP_BATTERY_VERSION  : Final = 0x24 # Version of data in 0x40 - 0x7f
@@ -64,7 +64,7 @@ EC_TEMP_SENSOR_ENTRIES     : Final = 16
 
 # Number of temp sensors at EC_MEMMAP_TEMP_SENSOR_B.
 #
-# Valid only if EC_MEMMAP_THERMAL_VERSION returns >: Final = 2.
+# Valid only if EC_MEMMAP_THERMAL_VERSION returns >= 2.
 
 EC_TEMP_SENSOR_B_ENTRIES      : Final = 8
 
@@ -75,7 +75,7 @@ EC_TEMP_SENSOR_NOT_POWERED    : Final = 0xfd
 EC_TEMP_SENSOR_NOT_CALIBRATED : Final = 0xfc
 
 # The offset of temperature value stored in mapped memory.  This allows
-# reporting a temperature range of 200K to 454K : Final = -73C to 181C.
+# reporting a temperature range of 200K to 454K = -73C to 181C.
 
 EC_TEMP_SENSOR_OFFSET      : Final = 200
 

@@ -1,4 +1,5 @@
 import unittest
+from memmap import *
 from general import *
 from features import *
 # These have some user input, uncomment if you're human.
