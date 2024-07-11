@@ -1,8 +1,9 @@
 from fcntl import ioctl
 import struct
 from typing import Final
-from sys import stderr
+import warnings
 from .constants.COMMON import *
+from .exceptions import ECError
 
 CROS_EC_IOC_MAGIC: Final = 0xEC
 
@@ -35,7 +36,7 @@ def _IORW(type: int, nr: int, size: int):
 
 
 def ec_command_fd(
-        fd, version: Int32, command: Int32, outsize: Int32, insize: Int32, data: bytes = None
+        fd, version: Int32, command: Int32, outsize: Int32, insize: Int32, data: bytes = None, warn: bool = True
 ) -> bytes:
     """Send a command to the EC and return the response.
     @param fd: File descriptor for the EC device.
@@ -44,6 +45,7 @@ def ec_command_fd(
     @param outsize: Outgoing length in bytes.
     @param insize: Max number of bytes to accept from the EC.
     @param data: Outgoing data to EC.
+    @param warn: Whether to warn if the response size is not as expected. Default is True.
     @return: Incoming data from EC.
     """
     if data is None:
@@ -59,14 +61,19 @@ def ec_command_fd(
     if result < 0:
         raise IOError(f"ioctl failed with error {result}")
 
-    if result != insize:
-        print(f"WARNING: expected {insize} bytes, got {result}", file=stderr)
+    ec_result = struct.unpack("<IIIII", buf[:len(cmd)])
+
+    if ec_result[4] != 0:
+        raise ECError(ec_result[4])
+
+    if result != insize and warn:
+        warnings.warn(f"Expected {insize} bytes, got {result} back from EC", RuntimeWarning)
 
     return bytes(buf[len(cmd): len(cmd) + insize])
 
 
 def ec_command(
-        version: Int32, command: Int32, outsize: Int32, insize: Int32, data: bytes = None
+        version: Int32, command: Int32, outsize: Int32, insize: Int32, data: bytes = None, warn: bool = True
 ) -> bytes:
     """
     Send a command to the EC and return the response.
@@ -75,10 +82,11 @@ def ec_command(
     @param outsize: Outgoing length in bytes.
     @param insize: Max number of bytes to accept from the EC. None for unlimited.
     @param data: Outgoing data to EC.
+    @param warn: Whether to warn if the response size is not as expected. Default is True.
     @return: Incoming data from EC.
     """
     with open("/dev/cros_ec", "wb") as fd:
-        return ec_command_fd(fd, version, command, outsize, insize, data)
+        return ec_command_fd(fd, version, command, outsize, insize, data, warn)
 
 
 def ec_readmem_fd(fd, offset: Int32, num_bytes: Int32) -> bytes:
@@ -104,7 +112,7 @@ def ec_readmem_fd(fd, offset: Int32, num_bytes: Int32) -> bytes:
                 raise IOError(f"ioctl failed with error {result}")
 
             if result != num_bytes:
-                print(f"WARNING: expected {num_bytes} bytes, got {result}", file=stderr)
+                warnings.warn(f"Expected {num_bytes} bytes, got {result} back from EC", RuntimeWarning)
 
             return buf[len(data): len(data) + num_bytes]
         except OSError as e:

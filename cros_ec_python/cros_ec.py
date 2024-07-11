@@ -17,8 +17,16 @@ class CrOS_EC:
         """
         self.dev_type = dev_type
         self.kwargs = kwargs
+        self.init_ec = init
         if init:
             self.ec_init()
+
+    def __del__(self) -> None:
+        """
+        Close the file descriptor if it was initialised by this class.
+        """
+        if self.init_ec:
+            self.ec_exit()
 
     def ec_init(self) -> None:
         """
@@ -34,7 +42,19 @@ class CrOS_EC:
             case _:
                 raise NotImplementedError
 
-    def command(self, version: Int32, command: Int32, outsize: Int32, insize: Int32, data: bytes = None) -> bytes:
+    def ec_exit(self) -> None:
+        """
+        Close the file descriptor if it exists.
+        """
+        match self.dev_type:
+            case DeviceTypes.LinuxDev:
+                if "fd" in self.kwargs:
+                    self.kwargs["fd"].close()
+            case _:
+                pass
+
+    def command(self, version: Int32, command: Int32, outsize: Int32, insize: Int32, data: bytes = None,
+                warn: bool = True) -> bytes:
         """
         Send a command to the EC and return the response.
         @param version: Command version number (often 0).
@@ -42,11 +62,12 @@ class CrOS_EC:
         @param outsize: Outgoing length in bytes.
         @param insize: Max number of bytes to accept from the EC. None for unlimited.
         @param data: Outgoing data to EC.
+        @param warn: Whether to warn if the response size is not as expected. Default is True.
         @return: Response from the EC.
         """
         match self.dev_type:
             case DeviceTypes.LinuxDev:
-                return dev.ec_command_fd(self.kwargs["fd"], version, command, outsize, insize, data)
+                return dev.ec_command_fd(self.kwargs["fd"], version, command, outsize, insize, data, warn)
             case _:
                 raise NotImplementedError
 

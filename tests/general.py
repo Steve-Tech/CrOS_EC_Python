@@ -1,6 +1,7 @@
 import unittest
 from cros_ec_python import CrOS_EC
 from cros_ec_python.commands.general import *
+from cros_ec_python.exceptions import ECError
 
 ec = CrOS_EC()
 
@@ -77,10 +78,22 @@ class TestCmdVersions(unittest.TestCase):
 class TestTestProtocol(unittest.TestCase):
     def test_version0(self):
         length = 32
-        buf = bytes(range(32))
+        buf = bytes(range(length))
         resp = test_protocol(ec, 0, length, buf)
         print(type(self).__name__, "-", resp)
         self.assertEqual(resp, buf)
+
+    def test_error(self):
+        with self.assertRaises(ECError):
+            test_protocol(ec, 1, 0, bytes())
+
+    def test_warning(self):
+        with self.assertWarns(RuntimeWarning):
+            length = 16
+            buf = bytes(range(length))
+            resp = test_protocol(ec, 0, length, buf, length * 2)
+            print(type(self).__name__, "-", resp)
+            self.assertEqual(resp[:length], buf)
 
 
 class TestProtocolInfo(unittest.TestCase):

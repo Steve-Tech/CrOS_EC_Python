@@ -77,7 +77,7 @@ def get_build_info(ec: CrOS_EC) -> str:
     @param ec: The CrOS_EC object.
     @return: The build info as a string.
     """
-    resp = ec.command(0, EC_CMD_GET_BUILD_INFO, 0, 0xfc)
+    resp = ec.command(0, EC_CMD_GET_BUILD_INFO, 0, 0xfc, warn=False)
     return resp.decode("utf-8").strip("\x00")
 
 
@@ -144,17 +144,18 @@ EC_CMD_GET_COMMS_STATUS: Final = 0x0009
 EC_CMD_TEST_PROTOCOL: Final = 0x000A
 
 
-def test_protocol(ec: CrOS_EC, result: UInt32, ret_len: UInt32, buf: bytes) -> bytes:
+def test_protocol(ec: CrOS_EC, result: UInt32, ret_len: UInt32, buf: bytes, in_size: Int32 | None = None) -> bytes:
     """
     Fake a variety of responses, purely for testing purposes.
     @param ec: The CrOS_EC object.
     @param result: Result for the EC to return.
     @param ret_len: Length of return data.
     @param buf: Data to return. Max length is 32 bytes.
+    @param in_size: Max number of bytes to accept from the EC. None to use ret_len.
     @return: The data returned.
     """
     data = struct.pack("<II", result, ret_len) + buf
-    resp = ec.command(0, EC_CMD_TEST_PROTOCOL, len(data), ret_len, data)
+    resp = ec.command(0, EC_CMD_TEST_PROTOCOL, len(data), in_size or ret_len, data)
     return resp
 
 
