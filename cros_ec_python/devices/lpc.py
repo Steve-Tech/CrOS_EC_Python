@@ -1,5 +1,4 @@
 import struct
-import portio
 import warnings
 import errno
 from ..baseclass import CrosEcClass
@@ -7,6 +6,13 @@ from ..constants.COMMON import *
 from ..constants.LPC import *
 from ..constants.MEMMAP import *
 from ..exceptions import ECError
+
+
+try:
+    import portio
+except ImportError as e:
+    warnings.warn(f"Failed to import portio: {e}, using /dev/port instead.", ImportWarning)
+    from ..utils import devportio as portio
 
 
 class CrosEcLpc(CrosEcClass):
