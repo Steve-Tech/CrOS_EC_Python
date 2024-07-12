@@ -1,3 +1,11 @@
+"""
+These functions are used to get the values of the memory-mapped data.
+
+They aren't actually commands that are sent to the EC (usually), but rather data that is read from the EC.
+This is why they aren't mixed in with the other commands.
+"""
+
+
 import struct
 from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
@@ -7,9 +15,9 @@ from ..constants.MEMMAP import *
 def get_temps(ec: CrosEcClass, adjust: int | float = -273) -> list[int | float]:
     """
     Get the temperature of all temp sensors.
-    @param ec: The CrOS_EC object.
-    @param adjust: The adjustment to apply to the temperature. Default is -273 to convert from Kelvin to Celsius.
-    @return: A list of temperatures.
+    :param ec: The CrOS_EC object.
+    :param adjust: The adjustment to apply to the temperature. Default is -273 to convert from Kelvin to Celsius.
+    :return: A list of temperatures.
     """
     version = int(ec.memmap(EC_MEMMAP_THERMAL_VERSION, 1)[0])
     if not version:
@@ -33,8 +41,8 @@ def get_temps(ec: CrosEcClass, adjust: int | float = -273) -> list[int | float]:
 def get_fans(ec: CrosEcClass) -> list[int | None]:
     """
     Get the speed of all fans.
-    @param ec: The CrOS_EC object.
-    @return: A list of fan speeds. None if the fan has stalled.
+    :param ec: The CrOS_EC object.
+    :return: A list of fan speeds. None if the fan has stalled.
     """
     version = int(ec.memmap(EC_MEMMAP_THERMAL_VERSION, 1)[0])
     if not version:
@@ -49,8 +57,8 @@ def get_fans(ec: CrosEcClass) -> list[int | None]:
 def get_switches(ec: CrosEcClass) -> dict[str, bool]:
     """
     Get the state of the switches.
-    @param ec: The CrOS_EC object.
-    @return: The state of the switches.
+    :param ec: The CrOS_EC object.
+    :return: The state of the switches.
     """
     version = int(ec.memmap(EC_MEMMAP_SWITCHES_VERSION, 1)[0])
     if not version:
@@ -69,8 +77,8 @@ def get_switches(ec: CrosEcClass) -> dict[str, bool]:
 def get_battery_values(ec: CrosEcClass) -> dict[str, int | bool | str]:
     """
     Get the values of the battery.
-    @param ec: The CrOS_EC object.
-    @return: The state of the battery.
+    :param ec: The CrOS_EC object.
+    :return: The state of the battery.
     """
     version = int(ec.memmap(EC_MEMMAP_BATTERY_VERSION, 1)[0])
     if not version:
@@ -102,22 +110,22 @@ def get_battery_values(ec: CrosEcClass) -> dict[str, int | bool | str]:
     }
 
 
-def get_als(ec: CrosEcClass) -> list[int | None]:
+def get_als(ec: CrosEcClass) -> list[int]:
     """
     Get the current value from all Ambient Light Sensors.
-    @param ec: The CrOS_EC object.
-    @return: A list of ALS values. May be 0 if the sensor is not present.
+    :param ec: The CrOS_EC object.
+    :return: A list of ALS values. May be 0 if the sensor is not present.
     """
     resp = ec.memmap(EC_MEMMAP_ALS, EC_ALS_ENTRIES * 2)  # 2 bytes per sensor
     als = struct.unpack(f"<{EC_ALS_ENTRIES}H", resp)
     return [val for val in als]
 
 
-def get_accel(ec: CrosEcClass) -> list[int | None]:
+def get_accel(ec: CrosEcClass) -> list[int]:
     """
     Get the current value from all accelerometers.
-    @param ec: The CrOS_EC object.
-    @return: A list of accelerometer values. May be 0 if the sensor is not present.
+    :param ec: The CrOS_EC object.
+    :return: A list of accelerometer values. May be 0 if the sensor is not present.
     """
     EC_ACC_ENTRIES: Final = 3
     resp = ec.memmap(EC_MEMMAP_ACC_DATA, EC_ACC_ENTRIES * 2)  # 2 bytes per sensor

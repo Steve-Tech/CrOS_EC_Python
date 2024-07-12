@@ -3,7 +3,7 @@ import struct
 from cros_ec_python import get_cros_ec, DeviceTypes
 
 """
-An example script to demonstrate how to use the cros_ec_python package to communicate with the EC.
+An advanced example script to demonstrate how to use the lower level commands to communicate with the EC.
 This example is for Framework laptops only.
 """
 

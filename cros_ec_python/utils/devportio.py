@@ -4,8 +4,8 @@
 def out_bytes(data: bytes, port: int) -> None:
     """
     Write data to the specified port.
-    @param data: Data to write.
-    @param port: Port to write to.
+    :param data: Data to write.
+    :param port: Port to write to.
     """
     with open("/dev/port", "wb") as f:
         f.seek(port)
@@ -15,8 +15,8 @@ def out_bytes(data: bytes, port: int) -> None:
 def outb(data: int, port: int) -> None:
     """
     Write a byte to the specified port.
-    @param data: Byte to write.
-    @param port: Port to write to.
+    :param data: Byte to write.
+    :param port: Port to write to.
     """
     out_bytes(data.to_bytes(1, "little"), port)
 
@@ -27,8 +27,8 @@ outb_p = outb
 def outw(data: int, port: int) -> None:
     """
     Write a word to the specified port.
-    @param data: Word to write.
-    @param port: Port to write to.
+    :param data: Word to write.
+    :param port: Port to write to.
     """
     out_bytes(data.to_bytes(2, "little"), port)
 
@@ -39,8 +39,8 @@ outw_p = outw
 def outl(data: int, port: int) -> None:
     """
     Write a long to the specified port.
-    @param data: Long to write.
-    @param port: Port to write to.
+    :param data: Long to write.
+    :param port: Port to write to.
     """
     out_bytes(data.to_bytes(4, "little"), port)
 
@@ -51,9 +51,9 @@ outl_p = outl
 def outsb(data: int, port: int, count: int) -> None:
     """
     Write a byte to the specified port, multiple times.
-    @param data: Byte to write.
-    @param port: Port to write to.
-    @param count: Number of times to write.
+    :param data: Byte to write.
+    :param port: Port to write to.
+    :param count: Number of times to write.
     """
     for i in range(count):
         outb(data, port)
@@ -62,9 +62,9 @@ def outsb(data: int, port: int, count: int) -> None:
 def outsw(data: int, port: int, count: int) -> None:
     """
     Write a word to the specified port, multiple times.
-    @param data: Word to write.
-    @param port: Port to write to.
-    @param count: Number of times to write.
+    :param data: Word to write.
+    :param port: Port to write to.
+    :param count: Number of times to write.
     """
     for i in range(count):
         outw(data, port)
@@ -73,9 +73,9 @@ def outsw(data: int, port: int, count: int) -> None:
 def outsl(data: int, port: int, count: int) -> None:
     """
     Write a long to the specified port, multiple times.
-    @param data: Long to write.
-    @param port: Port to write to.
-    @param count: Number of times to write.
+    :param data: Long to write.
+    :param port: Port to write to.
+    :param count: Number of times to write.
     """
     for i in range(count):
         outl(data, port)
@@ -84,9 +84,9 @@ def outsl(data: int, port: int, count: int) -> None:
 def in_bytes(port: int, num: int) -> bytes:
     """
     Read data from the specified port.
-    @param port: Port to read from.
-    @param num: Number of bytes to read.
-    @return: Data read.
+    :param port: Port to read from.
+    :param num: Number of bytes to read.
+    :return: Data read.
     """
     with open("/dev/port", "rb") as f:
         f.seek(port)
@@ -96,8 +96,8 @@ def in_bytes(port: int, num: int) -> bytes:
 def inb(port: int) -> int:
     """
     Read a byte from the specified port.
-    @param port: Port to read from.
-    @return: Byte read.
+    :param port: Port to read from.
+    :return: Byte read.
     """
     return int.from_bytes(in_bytes(port, 1), "little")
 
@@ -108,8 +108,8 @@ inb_p = inb
 def inw(port: int) -> int:
     """
     Read a word from the specified port.
-    @param port: Port to read from.
-    @return: Word read.
+    :param port: Port to read from.
+    :return: Word read.
     """
     return int.from_bytes(in_bytes(port, 2), "little")
 
@@ -120,8 +120,8 @@ inw_p = inw
 def inl(port: int) -> int:
     """
     Read a long from the specified port.
-    @param port: Port to read from.
-    @return: Long read.
+    :param port: Port to read from.
+    :return: Long read.
     """
     return int.from_bytes(in_bytes(port, 4), "little")
 
@@ -132,9 +132,9 @@ inl_p = inl
 def insb(port: int, data: bytearray, count: int) -> None:
     """
     Read a byte from the specified port, multiple times.
-    @param port: Port to read from.
-    @param data: Buffer to read into.
-    @param count: Number of times to read.
+    :param port: Port to read from.
+    :param data: Buffer to read into.
+    :param count: Number of times to read.
     """
     for i in range(count):
         if i >= len(data):
@@ -146,9 +146,9 @@ def insb(port: int, data: bytearray, count: int) -> None:
 def insw(port: int, data: bytearray, count: int) -> None:
     """
     Read a word from the specified port, multiple times.
-    @param port: Port to read from.
-    @param data: Buffer to read into.
-    @param count: Number of times to read.
+    :param port: Port to read from.
+    :param data: Buffer to read into.
+    :param count: Number of times to read.
     """
     for i in range(count):
         if i >= len(data):
@@ -160,9 +160,9 @@ def insw(port: int, data: bytearray, count: int) -> None:
 def insl(port: int, data: bytearray, count: int) -> None:
     """
     Read a long from the specified port, multiple times.
-    @param port: Port to read from.
-    @param data: Buffer to read into.
-    @param count: Number of times to read.
+    :param port: Port to read from.
+    :param data: Buffer to read into.
+    :param count: Number of times to read.
     """
     for i in range(count):
         if i >= len(data):

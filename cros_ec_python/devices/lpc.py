@@ -15,11 +15,15 @@ except ImportError as e:
 
 
 class CrosEcLpc(CrosEcClass):
+    """
+    Class to interact with the EC using the LPC interface.
+    """
+
     def __init__(self, init: bool = True, address: Int32 = None):
         """
         Detect and initialise the EC.
-        @param init: Whether to initialise the EC on creation. Default is True.
-        @param address: Specify a custom memmap address, will be detected if not specified.
+        :param init: Whether to initialise the EC on creation. Default is True.
+        :param address: Specify a custom memmap address, will be detected if not specified.
         """
         self.address = address
         if init:
@@ -28,7 +32,7 @@ class CrosEcLpc(CrosEcClass):
     @staticmethod
     def detect() -> bool:
         """
-        Detect the EC type.
+        Checks for known CrOS EC memory map addresses in `/proc/ioports`.
         """
         with open("/proc/ioports", "r") as f:
             for line in f:
@@ -39,8 +43,8 @@ class CrosEcLpc(CrosEcClass):
     def find_address(*addresses) -> int | None:
         """
         Find the EC memory map address.
-        @param addresses: A list of addresses to check.
-        @return: The address of the EC memory map, or None if not found.
+        :param addresses: A list of addresses to check.
+        :return: The address of the EC memory map, or None if not found.
         """
         for a in addresses:
             if res := portio.ioperm(a, EC_MEMMAP_SIZE, True):
@@ -60,7 +64,7 @@ class CrosEcLpc(CrosEcClass):
     def ec_init(self) -> None:
         """
         Initialise the EC. Checks for the EC, and configures the library to speak the same version.
-        @param address: Address of the EC memory map.
+        :param address: Address of the EC memory map.
         """
         # Find memmap address
         if self.address is None:
@@ -100,7 +104,7 @@ class CrosEcLpc(CrosEcClass):
     def wait_for_ec(status_addr: Int32 = EC_LPC_ADDR_HOST_CMD) -> None:
         """
         Wait for the EC to be ready after sending a command.
-        @param status_addr: The status register to read.
+        :param status_addr: The status register to read.
         """
         while portio.inb(status_addr) & EC_LPC_STATUS_BUSY_MASK:
             pass
@@ -109,13 +113,13 @@ class CrosEcLpc(CrosEcClass):
                       warn: bool = True):
         """
         Send a command to the EC and return the response. Uses the v2 command protocol over LPC. UNTESTED!
-        @param version: Command version number (often 0).
-        @param command: Command to send (EC_CMD_...).
-        @param outsize: Outgoing length in bytes.
-        @param insize: Max number of bytes to accept from the EC.
-        @param data: Outgoing data to EC.
-        @param warn: Whether to warn if the response size is not as expected. Default is True.
-        @return: Response from the EC.
+        :param version: Command version number (often 0).
+        :param command: Command to send (EC_CMD_...).
+        :param outsize: Outgoing length in bytes.
+        :param insize: Max number of bytes to accept from the EC.
+        :param data: Outgoing data to EC.
+        :param warn: Whether to warn if the response size is not as expected. Default is True.
+        :return: Response from the EC.
         """
         warnings.warn("Support for v2 commands haven't been tested! Open an issue on github if it does "
                       "or doesn't work: https://github.com/Steve-Tech/CrOS_EC_Python/issues", RuntimeWarning)
@@ -179,13 +183,13 @@ class CrosEcLpc(CrosEcClass):
                       warn: bool = True) -> bytes:
         """
         Send a command to the EC and return the response. Uses the v3 command protocol over LPC.
-        @param version: Command version number (often 0).
-        @param command: Command to send (EC_CMD_...).
-        @param outsize: Outgoing length in bytes.
-        @param insize: Max number of bytes to accept from the EC.
-        @param data: Outgoing data to EC.
-        @param warn: Whether to warn if the response size is not as expected. Default is True.
-        @return: Response from the EC.
+        :param version: Command version number (often 0).
+        :param command: Command to send (EC_CMD_...).
+        :param outsize: Outgoing length in bytes.
+        :param insize: Max number of bytes to accept from the EC.
+        :param data: Outgoing data to EC.
+        :param warn: Whether to warn if the response size is not as expected. Default is True.
+        :return: Response from the EC.
         """
         csum = 0
         request = bytearray(struct.pack("BBHBxH", EC_HOST_REQUEST_VERSION, csum, command, version, outsize))
@@ -274,10 +278,10 @@ class CrosEcLpc(CrosEcClass):
     def memmap(self, offset: Int32, num_bytes: Int32) -> bytes:
         """
         Read memory from the EC.
-        @param offset: Offset to read from.
-        @param num_bytes: Number of bytes to read.
-        @param address: Address of the EC memory map.
-        @return: Bytes read from the EC.
+        :param offset: Offset to read from.
+        :param num_bytes: Number of bytes to read.
+        :param address: Address of the EC memory map.
+        :return: Bytes read from the EC.
         """
         data = bytearray()
         for i in range(num_bytes):

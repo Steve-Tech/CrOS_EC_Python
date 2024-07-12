@@ -1,3 +1,7 @@
+"""
+LED control commands
+"""
+
 from typing import Final
 from enum import Enum, auto
 import struct
@@ -48,11 +52,11 @@ class EcLedColors(Enum):
 def led_control(ec: CrosEcClass, led_id: EcLedId, flags: UInt8, brightnesses: list[UInt8]) -> list[UInt8]:
     """
     Control an LED
-    @param ec: The CrOS_EC object.
-    @param led_id: The LED to control.
-    @param flags: Control flags. See EC_LED_FLAGS_*.
-    @param brightnesses: Brightness values for each color. (6 colors, see EcLedColors)
-    @return: The available brightness value range for each color.
+    :param ec: The CrOS_EC object.
+    :param led_id: The LED to control.
+    :param flags: Control flags. See EC_LED_FLAGS_*.
+    :param brightnesses: Brightness values for each color. (6 colors, see EcLedColors)
+    :return: The available brightness value range for each color.
     """
     data = struct.pack(f"<BB{EcLedColors.EC_LED_COLOR_COUNT.value}B", led_id.value, flags, *brightnesses)
     resp = ec.command(1, EC_CMD_LED_CONTROL, len(data), EcLedColors.EC_LED_COLOR_COUNT.value, data)
@@ -62,11 +66,11 @@ def led_control(ec: CrosEcClass, led_id: EcLedId, flags: UInt8, brightnesses: li
 def led_control_set_color(ec: CrosEcClass, led_id: EcLedId, brightness: UInt8, color: EcLedColors) -> list[UInt8]:
     """
     Control an LED
-    @param ec: The CrOS_EC object.
-    @param led_id: The LED to control.
-    @param brightness: Brightness value.
-    @param color: Color to set the LED to.
-    @return: The available brightness value range for each color.
+    :param ec: The CrOS_EC object.
+    :param led_id: The LED to control.
+    :param brightness: Brightness value.
+    :param color: Color to set the LED to.
+    :return: The available brightness value range for each color.
     """
     brightnesses = [0] * EcLedColors.EC_LED_COLOR_COUNT.value
     brightnesses[color.value] = brightness
@@ -76,9 +80,9 @@ def led_control_set_color(ec: CrosEcClass, led_id: EcLedId, brightness: UInt8, c
 def led_control_get_max_values(ec: CrosEcClass, led_id: EcLedId) -> list[UInt8]:
     """
     Get the current brightness values of an LED
-    @param ec: The CrOS_EC object.
-    @param led_id: The LED to get the brightness values of.
-    @return: The available brightness value range for each color.
+    :param ec: The CrOS_EC object.
+    :param led_id: The LED to get the brightness values of.
+    :return: The available brightness value range for each color.
     """
     return led_control(ec, led_id, EC_LED_FLAGS_QUERY, [0] * EcLedColors.EC_LED_COLOR_COUNT.value)
 
@@ -86,8 +90,8 @@ def led_control_get_max_values(ec: CrosEcClass, led_id: EcLedId) -> list[UInt8]:
 def led_control_set_auto(ec: CrosEcClass, led_id: EcLedId) -> list[UInt8]:
     """
     Get the current brightness values of an LED
-    @param ec: The CrOS_EC object.
-    @param led_id: The LED to get the brightness values of.
-    @return: The available brightness value range for each color.
+    :param ec: The CrOS_EC object.
+    :param led_id: The LED to get the brightness values of.
+    :return: The available brightness value range for each color.
     """
     return led_control(ec, led_id, EC_LED_FLAGS_AUTO, [0] * EcLedColors.EC_LED_COLOR_COUNT.value)

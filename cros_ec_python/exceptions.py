@@ -1,8 +1,18 @@
+"""
+This file includes the exceptions raised from CrOS EC devices.
+
+See `cros_ec_python.constants.COMMON.EcStatus` for possible error codes.
+"""
+
 from .constants.COMMON import EcStatus
 
 
 class ECError(IOError):
-    """Exception raised for errors in the EC interface."""
+    """
+    Exception raised for errors in the EC interface.
+
+    See `cros_ec_python.constants.COMMON.EcStatus` for possible error codes.
+    """
 
     def __init__(self, status: int, message: str | None = None):
         self.status = status

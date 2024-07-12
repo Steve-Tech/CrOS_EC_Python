@@ -17,8 +17,10 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+docs = ["pdoc"]
 lpc = ["portio"]
 
 [project.urls]
-Repository = "https://github.com/Steve-Tech/CrOS-EC-Python"
-Issues = "https://github.com/Steve-Tech/CrOS-EC-Python/issues"
+Documentation = "https://steve-tech.github.io/CrOS_EC_Python/"
+Repository = "https://github.com/Steve-Tech/CrOS_EC_Python"
+Issues = "https://github.com/Steve-Tech/CrOS_EC_Python/issues"

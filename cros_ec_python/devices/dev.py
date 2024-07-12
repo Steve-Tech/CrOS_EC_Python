@@ -40,11 +40,15 @@ def _IORW(type: int, nr: int, size: int):
 
 
 class CrosEcDev(CrosEcClass):
+    """
+    Class to interact with the EC using the Linux cros_ec device.
+    """
+
     def __init__(self, fd=open("/dev/cros_ec", "wb", buffering=0), memmap_ioctl: bool = True):
         """
         Initialise the EC using the Linux cros_ec device.
-        @param fd: Use a custom file description, opens /dev/cros_ec by default.
-        @param memmap_ioctl: Use ioctl for memmap (default), if False the READ_MEMMAP command will be used instead.
+        :param fd: Use a custom file description, opens /dev/cros_ec by default.
+        :param memmap_ioctl: Use ioctl for memmap (default), if False the READ_MEMMAP command will be used instead.
         """
         self.fd = fd
         self.memmap_ioctl = memmap_ioctl
@@ -55,7 +59,7 @@ class CrosEcDev(CrosEcClass):
     @staticmethod
     def detect() -> bool:
         """
-        Detect the EC type.
+        Checks for `/dev/cros_ec` and returns True if it exists.
         """
         return os.path.exists("/dev/cros_ec")
 
@@ -74,13 +78,13 @@ class CrosEcDev(CrosEcClass):
     ) -> bytes:
         """
         Send a command to the EC and return the response.
-        @param version: Command version number (often 0).
-        @param command: Command to send (EC_CMD_...).
-        @param outsize: Outgoing length in bytes.
-        @param insize: Max number of bytes to accept from the EC.
-        @param data: Outgoing data to EC.
-        @param warn: Whether to warn if the response size is not as expected. Default is True.
-        @return: Incoming data from EC.
+        :param version: Command version number (often 0).
+        :param command: Command to send (EC_CMD_...).
+        :param outsize: Outgoing length in bytes.
+        :param insize: Max number of bytes to accept from the EC.
+        :param data: Outgoing data to EC.
+        :param warn: Whether to warn if the response size is not as expected. Default is True.
+        :return: Incoming data from EC.
         """
         if data is None:
             data = bytes(outsize)
@@ -108,9 +112,9 @@ class CrosEcDev(CrosEcClass):
     def memmap(self, offset: Int32, num_bytes: Int32) -> bytes:
         """
         Read memory from the EC.
-        @param offset: Offset to read from.
-        @param num_bytes: Number of bytes to read.
-        @return: Bytes read from the EC.
+        :param offset: Offset to read from.
+        :param num_bytes: Number of bytes to read.
+        :return: Bytes read from the EC.
         """
         if self.memmap_ioctl:
             data = struct.pack("<II", offset, num_bytes)
