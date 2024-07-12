@@ -77,3 +77,24 @@ EC_LPC_STATUS_RESERVED    :Final = 0x80
 # written a new command but the EC hasn't picked it up yet.
 
 EC_LPC_STATUS_BUSY_MASK :Final = EC_LPC_STATUS_FROM_HOST | EC_LPC_STATUS_PROCESSING
+
+
+# Flags for ec_lpc_host_args.flags
+#
+# Args are from host.  Data area at EC_LPC_ADDR_HOST_PARAM contains command
+# params.
+#
+# If EC gets a command and this flag is not set, this is an old-style command.
+# Command version is 0 and params from host are at EC_LPC_ADDR_OLD_PARAM with
+# unknown length.  EC must respond with an old-style response (that is,
+# without setting EC_HOST_ARGS_FLAG_TO_HOST).
+
+EC_HOST_ARGS_FLAG_FROM_HOST: Final = 0x01
+
+# Args are from EC.  Data area at EC_LPC_ADDR_HOST_PARAM contains response.
+#
+# If EC responds to a command and this flag is not set, this is an old-style
+# response.  Command version is 0 and response data from EC is at
+# EC_LPC_ADDR_OLD_PARAM with unknown length.
+
+EC_HOST_ARGS_FLAG_TO_HOST: Final = 0x02

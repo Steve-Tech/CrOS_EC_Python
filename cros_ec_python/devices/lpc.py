@@ -7,7 +7,6 @@ from ..constants.LPC import *
 from ..constants.MEMMAP import *
 from ..exceptions import ECError
 
-
 try:
     import portio
 except ImportError as e:
@@ -17,6 +16,11 @@ except ImportError as e:
 
 class CrosEcLpc(CrosEcClass):
     def __init__(self, init: bool = True, address: Int32 = None):
+        """
+        Detect and initialise the EC.
+        @param init: Whether to initialise the EC on creation. Default is True.
+        @param address: Specify a custom memmap address, will be detected if not specified.
+        """
         self.address = address
         if init:
             self.ec_init()
@@ -33,6 +37,11 @@ class CrosEcLpc(CrosEcClass):
 
     @staticmethod
     def find_address(*addresses) -> int | None:
+        """
+        Find the EC memory map address.
+        @param addresses: A list of addresses to check.
+        @return: The address of the EC memory map, or None if not found.
+        """
         for a in addresses:
             if res := portio.ioperm(a, EC_MEMMAP_SIZE, True):
                 if res == errno.EPERM:
@@ -47,7 +56,6 @@ class CrosEcLpc(CrosEcClass):
                 # Nothing here
                 portio.ioperm(a, EC_MEMMAP_SIZE, False)
                 continue
-
 
     def ec_init(self) -> None:
         """
@@ -69,7 +77,6 @@ class CrosEcLpc(CrosEcClass):
                 raise PermissionError("Permission denied. Try running as root.")
             else:
                 raise OSError(f"ioperm returned {errno.errorcode[res]} ({res})")
-
 
         status = 0xFF
 
@@ -98,8 +105,75 @@ class CrosEcLpc(CrosEcClass):
         while portio.inb(status_addr) & EC_LPC_STATUS_BUSY_MASK:
             pass
 
-    def ec_command_v2(self):
-        raise NotImplementedError
+    def ec_command_v2(self, version: UInt8, command: UInt32, outsize: UInt16, insize: UInt32, data: bytes = None,
+                      warn: bool = True):
+        """
+        Send a command to the EC and return the response. Uses the v2 command protocol over LPC. UNTESTED!
+        @param version: Command version number (often 0).
+        @param command: Command to send (EC_CMD_...).
+        @param outsize: Outgoing length in bytes.
+        @param insize: Max number of bytes to accept from the EC.
+        @param data: Outgoing data to EC.
+        @param warn: Whether to warn if the response size is not as expected. Default is True.
+        @return: Response from the EC.
+        """
+        warnings.warn("Support for v2 commands haven't been tested! Open an issue on github if it does "
+                      "or doesn't work: https://github.com/Steve-Tech/CrOS_EC_Python/issues", RuntimeWarning)
+        csum = 0
+        args = bytearray(struct.pack("BBBB", EC_HOST_ARGS_FLAG_FROM_HOST, version, outsize, csum))
+        # (flags: UInt8, command_version: UInt8, data_size: UInt8, checksum: UInt8)
+
+        # Copy data and start checksum
+        for i in range(outsize):
+            portio.outb(data[i], EC_LPC_ADDR_HOST_PARAM + i)
+            csum += data[i]
+
+        # Finish checksum
+        for i in range(len(args)):
+            csum += args[i]
+
+        args[3] = csum & 0xff
+
+        # Copy header
+        for i in range(len(args)):
+            portio.outb(args[i], EC_LPC_ADDR_HOST_ARGS + i)
+
+        # Start the command
+        portio.outb(command, EC_LPC_ADDR_HOST_CMD)
+
+        self.wait_for_ec()
+
+        # Check result
+        i = portio.inb(EC_LPC_ADDR_HOST_DATA)
+        if i:
+            raise ECError(i)
+
+        # Read back args
+        csum = 0
+        data_out = bytearray(len(args))
+        for i in range(len(data_out)):
+            data_out[i] = portio.inb(EC_LPC_ADDR_HOST_ARGS + i)
+            csum += data_out[i]
+
+        response = struct.unpack("BBBB", data_out)
+        # (flags: UInt8, command_version: UInt8, data_size: UInt8, checksum: UInt8)
+
+        if response[0] != EC_HOST_ARGS_FLAG_TO_HOST:
+            raise IOError("Invalid response!")
+
+        if response[2] != insize and warn:
+            warnings.warn(f"Expected {insize} bytes, got {response[2]} back from EC", RuntimeWarning)
+
+        # Read back data
+        data = bytearray()
+        for i in range(response[2]):
+            data.append(portio.inb(EC_LPC_ADDR_HOST_PARAM + i))
+            csum += data[i]
+
+        if response[3] != (csum & 0xff):
+            raise IOError("Checksum error!")
+
+        return bytes(data)
 
     def ec_command_v3(self, version: UInt8, command: UInt32, outsize: UInt16, insize: UInt32, data: bytes = None,
                       warn: bool = True) -> bytes:
@@ -115,6 +189,8 @@ class CrosEcLpc(CrosEcClass):
         """
         csum = 0
         request = bytearray(struct.pack("BBHBxH", EC_HOST_REQUEST_VERSION, csum, command, version, outsize))
+        # (struct_version: UInt8, checksum: UInt8, command: UInt16,
+        # command_version: UInt8, reserved: UInt8, data_len: UInt16)
 
         # Fail if output size is too big
         if outsize + len(request) > EC_LPC_HOST_PACKET_SIZE:
@@ -153,6 +229,7 @@ class CrosEcLpc(CrosEcClass):
             csum += data_out[i]
 
         response = struct.unpack("BBHHH", data_out)
+        # (struct_version: UInt8, checksum: UInt8, result: UInt16, data_len: UInt16, reserved: UInt16)
 
         if response[0] != EC_HOST_RESPONSE_VERSION:
             raise IOError("Invalid response version!")
@@ -179,7 +256,7 @@ class CrosEcLpc(CrosEcClass):
         """
         Stub function, will get overwritten in ec_get_cmd_version.
         """
-        raise NotImplementedError
+        raise NotImplementedError("EC doesn't support commands!")
 
     def ec_get_cmd_version(self) -> int:
         version = portio.inb(self.address + EC_MEMMAP_HOST_CMD_FLAGS)

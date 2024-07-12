@@ -1,3 +1,4 @@
+import errno
 from fcntl import ioctl
 import struct
 from typing import Final
@@ -41,9 +42,9 @@ def _IORW(type: int, nr: int, size: int):
 class CrosEcDev(CrosEcClass):
     def __init__(self, fd=open("/dev/cros_ec", "wb", buffering=0), memmap_ioctl: bool = True):
         """
-
-        @param fd:
-        @param memmap_ioctl:
+        Initialise the EC using the Linux cros_ec device.
+        @param fd: Use a custom file description, opens /dev/cros_ec by default.
+        @param memmap_ioctl: Use ioctl for memmap (default), if False the READ_MEMMAP command will be used instead.
         """
         self.fd = fd
         self.memmap_ioctl = memmap_ioctl
@@ -62,6 +63,9 @@ class CrosEcDev(CrosEcClass):
         pass
 
     def ec_exit(self) -> None:
+        """
+        Close the file on exit.
+        """
         if self.fd:
             self.fd.close()
 
@@ -125,8 +129,8 @@ class CrosEcDev(CrosEcClass):
 
                 return buf[len(data): len(data) + num_bytes]
             except OSError as e:
-                if e.errno == 25:
-                    print(e)
+                if e.errno == errno.ENOTTY:
+                    warnings.warn("ioctl failed, falling back to READ_MEMMAP command", RuntimeWarning)
                     self.memmap_ioctl = False
                     return self.memmap(offset, num_bytes)
                 else:
