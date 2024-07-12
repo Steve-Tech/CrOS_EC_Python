@@ -44,12 +44,14 @@ class CrosEcDev(CrosEcClass):
     Class to interact with the EC using the Linux cros_ec device.
     """
 
-    def __init__(self, fd=open("/dev/cros_ec", "wb", buffering=0), memmap_ioctl: bool = True):
+    def __init__(self, fd=None, memmap_ioctl: bool = True):
         """
         Initialise the EC using the Linux cros_ec device.
         :param fd: Use a custom file description, opens /dev/cros_ec by default.
         :param memmap_ioctl: Use ioctl for memmap (default), if False the READ_MEMMAP command will be used instead.
         """
+        if fd is None:
+            fd = open("/dev/cros_ec", "wb", buffering=0)
         self.fd = fd
         self.memmap_ioctl = memmap_ioctl
 
