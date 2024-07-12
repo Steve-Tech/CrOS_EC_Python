@@ -1,7 +1,7 @@
 import unittest
-from cros_ec_python import CrOS_EC, features as ec_features
+from cros_ec_python import get_cros_ec, features as ec_features
 
-ec = CrOS_EC()
+ec = get_cros_ec()
 
 
 class TestGetFeatures(unittest.TestCase):

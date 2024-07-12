@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import struct
-from cros_ec_python import CrOS_EC, DeviceTypes
+from cros_ec_python import get_cros_ec, DeviceTypes
 
 """
 An example script to demonstrate how to use the cros_ec_python package to communicate with the EC.
@@ -8,7 +8,7 @@ This example is for Framework laptops only.
 """
 
 # Uses the Linux device by default
-ec = CrOS_EC()
+ec = get_cros_ec()
 # Uncomment the line below to use the LPC device instead, `address=0xE00` is only needed for AMD Frameworks
 #ec = CrOS_EC(DeviceTypes.LPC, address=0xE00)
 

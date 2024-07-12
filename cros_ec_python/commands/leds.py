@@ -1,7 +1,7 @@
 from typing import Final
 from enum import Enum, auto
 import struct
-from ..cros_ec import CrOS_EC
+from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
 
 EC_CMD_LED_CONTROL: Final = 0x0029
@@ -45,7 +45,7 @@ class EcLedColors(Enum):
     EC_LED_COLOR_COUNT = auto()
 
 
-def led_control(ec: CrOS_EC, led_id: EcLedId, flags: UInt8, brightnesses: list[UInt8]) -> list[UInt8]:
+def led_control(ec: CrosEcClass, led_id: EcLedId, flags: UInt8, brightnesses: list[UInt8]) -> list[UInt8]:
     """
     Control an LED
     @param ec: The CrOS_EC object.
@@ -59,7 +59,7 @@ def led_control(ec: CrOS_EC, led_id: EcLedId, flags: UInt8, brightnesses: list[U
     return list(resp)
 
 
-def led_control_set_color(ec: CrOS_EC, led_id: EcLedId, brightness: UInt8, color: EcLedColors) -> list[UInt8]:
+def led_control_set_color(ec: CrosEcClass, led_id: EcLedId, brightness: UInt8, color: EcLedColors) -> list[UInt8]:
     """
     Control an LED
     @param ec: The CrOS_EC object.
@@ -73,7 +73,7 @@ def led_control_set_color(ec: CrOS_EC, led_id: EcLedId, brightness: UInt8, color
     return led_control(ec, led_id, 0, brightnesses)
 
 
-def led_control_get_max_values(ec: CrOS_EC, led_id: EcLedId) -> list[UInt8]:
+def led_control_get_max_values(ec: CrosEcClass, led_id: EcLedId) -> list[UInt8]:
     """
     Get the current brightness values of an LED
     @param ec: The CrOS_EC object.
@@ -83,7 +83,7 @@ def led_control_get_max_values(ec: CrOS_EC, led_id: EcLedId) -> list[UInt8]:
     return led_control(ec, led_id, EC_LED_FLAGS_QUERY, [0] * EcLedColors.EC_LED_COLOR_COUNT.value)
 
 
-def led_control_set_auto(ec: CrOS_EC, led_id: EcLedId) -> list[UInt8]:
+def led_control_set_auto(ec: CrosEcClass, led_id: EcLedId) -> list[UInt8]:
     """
     Get the current brightness values of an LED
     @param ec: The CrOS_EC object.

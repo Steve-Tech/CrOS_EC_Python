@@ -41,6 +41,7 @@ EC_LPC_CMDR_SCI		: Final = BIT(5)  # SCI event is pending
 EC_LPC_CMDR_SMI		: Final = BIT(6)  # SMI event is pending
 
 EC_LPC_ADDR_MEMMAP       : Final = 0x900
+EC_LPC_ADDR_MEMMAP_FWAMD : Final = 0xE00  # Address on AMD Framework Laptops
 
 
 # Value written to legacy command port / prefix byte to indicate protocol

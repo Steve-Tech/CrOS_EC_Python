@@ -1,7 +1,7 @@
 from typing import Final
 from enum import Enum
 import struct
-from ..cros_ec import CrOS_EC
+from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
 
 EC_CMD_GET_FEATURES: Final = 0x000D
@@ -139,7 +139,7 @@ class EcFeatureCode(Enum):
     EC_FEATURE_TYPEC_AP_VDM_SEND = 46
 
 
-def get_features(ec: CrOS_EC) -> UInt64:
+def get_features(ec: CrosEcClass) -> UInt64:
     """
     List the features supported by the firmware
     @param ec: The CrOS_EC object.

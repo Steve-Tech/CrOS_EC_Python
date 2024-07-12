@@ -1,13 +1,13 @@
 from typing import Final
 from enum import Enum, auto
 import struct
-from ..cros_ec import CrOS_EC
+from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
 
 EC_CMD_PWM_GET_FAN_TARGET_RPM: Final = 0x0020
 
 
-def pwm_get_fan_rpm(ec: CrOS_EC) -> UInt32:
+def pwm_get_fan_rpm(ec: CrosEcClass) -> UInt32:
     """
     Get fan target RPM
     @param ec: The CrOS_EC object.
@@ -20,7 +20,7 @@ def pwm_get_fan_rpm(ec: CrOS_EC) -> UInt32:
 EC_CMD_PWM_SET_FAN_TARGET_RPM: Final = 0x0021
 
 
-def pwm_set_fan_rpm(ec: CrOS_EC, rpm: UInt32, idx: UInt8 | None = None) -> None:
+def pwm_set_fan_rpm(ec: CrosEcClass, rpm: UInt32, idx: UInt8 | None = None) -> None:
     """
     Set target fan RPM
     @param ec: The CrOS_EC object.
@@ -39,7 +39,7 @@ def pwm_set_fan_rpm(ec: CrOS_EC, rpm: UInt32, idx: UInt8 | None = None) -> None:
 EC_CMD_PWM_GET_KEYBOARD_BACKLIGHT: Final = 0x0022
 
 
-def pwm_get_keyboard_backlight(ec: CrOS_EC) -> dict[str, UInt8]:
+def pwm_get_keyboard_backlight(ec: CrosEcClass) -> dict[str, UInt8]:
     """
     Get keyboard backlight
     OBSOLETE - Use EC_CMD_PWM_SET_DUTY
@@ -57,7 +57,7 @@ def pwm_get_keyboard_backlight(ec: CrOS_EC) -> dict[str, UInt8]:
 EC_CMD_PWM_SET_KEYBOARD_BACKLIGHT: Final = 0x0023
 
 
-def pwm_set_keyboard_backlight(ec: CrOS_EC, percent: UInt8) -> None:
+def pwm_set_keyboard_backlight(ec: CrosEcClass, percent: UInt8) -> None:
     """
     Set keyboard backlight
     OBSOLETE - Use EC_CMD_PWM_SET_DUTY
@@ -72,7 +72,7 @@ def pwm_set_keyboard_backlight(ec: CrOS_EC, percent: UInt8) -> None:
 EC_CMD_PWM_SET_FAN_DUTY: Final = 0x0024
 
 
-def pwm_set_fan_duty(ec: CrOS_EC, percent: UInt32, idx: UInt8 | None = None) -> None:
+def pwm_set_fan_duty(ec: CrosEcClass, percent: UInt32, idx: UInt8 | None = None) -> None:
     """
     Set target fan PWM duty cycle
     @param ec: The CrOS_EC object.
@@ -103,7 +103,7 @@ class EcPwmType(Enum):
     EC_PWM_TYPE_COUNT = auto()
 
 
-def pwm_set_duty(ec: CrOS_EC, duty: UInt16, pwm_type: EcPwmType, index: UInt8 = 0) -> None:
+def pwm_set_duty(ec: CrosEcClass, duty: UInt16, pwm_type: EcPwmType, index: UInt8 = 0) -> None:
     """
     Set PWM duty cycle
     @param ec: The CrOS_EC object.
@@ -119,7 +119,7 @@ def pwm_set_duty(ec: CrOS_EC, duty: UInt16, pwm_type: EcPwmType, index: UInt8 = 
 EC_CMD_PWM_GET_DUTY: Final = 0x0026
 
 
-def pwm_get_duty(ec: CrOS_EC, pwm_type: EcPwmType, index: UInt8 = 0) -> UInt16:
+def pwm_get_duty(ec: CrosEcClass, pwm_type: EcPwmType, index: UInt8 = 0) -> UInt16:
     """
     Get PWM duty cycle
     @param ec: The CrOS_EC object.

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import struct
-from cros_ec_python import CrOS_EC
+from cros_ec_python import get_cros_ec
 
 """
 An example script to demonstrate how to use the cros_ec_python package to communicate with the EC.
 """
 
-ec = CrOS_EC()
+ec = get_cros_ec()
 
 # --- Temperature Sensors ---
 # An example that uses the ec memory map to read the temperature sensors

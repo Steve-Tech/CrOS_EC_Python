@@ -1,6 +1,6 @@
 from typing import Final
 import struct
-from ..cros_ec import CrOS_EC
+from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
 
 EC_CMD_THERMAL_SET_THRESHOLD: Final = 0x0050
@@ -9,7 +9,7 @@ EC_CMD_THERMAL_GET_THRESHOLD: Final = 0x0051
 EC_CMD_THERMAL_AUTO_FAN_CTRL: Final = 0x0052
 
 
-def thermal_auto_fan_ctrl(ec: CrOS_EC, fan_idx: UInt8 | None = None) -> None:
+def thermal_auto_fan_ctrl(ec: CrosEcClass, fan_idx: UInt8 | None = None) -> None:
     """
     Toggle automatic fan control.
     @param ec: The CrOS_EC object.

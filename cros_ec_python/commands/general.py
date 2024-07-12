@@ -1,12 +1,12 @@
 from typing import Final, Literal
 import struct
-from ..cros_ec import CrOS_EC
+from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
 
 EC_CMD_PROTO_VERSION: Final = 0x0000
 
 
-def proto_version(ec: CrOS_EC) -> UInt32:
+def proto_version(ec: CrosEcClass) -> UInt32:
     """
     Get protocol version, used to deal with non-backward compatible protocol changes.
     @param ec: The CrOS_EC object.
@@ -19,7 +19,7 @@ def proto_version(ec: CrOS_EC) -> UInt32:
 EC_CMD_HELLO: Final = 0x0001
 
 
-def hello(ec: CrOS_EC, in_data: UInt32) -> UInt32:
+def hello(ec: CrosEcClass, in_data: UInt32) -> UInt32:
     """
     Hello.  This is a simple command to test the EC is responsive to commands.
     @param ec: The CrOS_EC object.
@@ -34,7 +34,7 @@ def hello(ec: CrOS_EC, in_data: UInt32) -> UInt32:
 EC_CMD_GET_VERSION: Final = 0x0002
 
 
-def get_version(ec: CrOS_EC, version: Literal[0, 1] = 0) -> dict[str, str | int]:
+def get_version(ec: CrosEcClass, version: Literal[0, 1] = 0) -> dict[str, str | int]:
     """
     Get version number
     @param ec: The CrOS_EC object.
@@ -71,7 +71,7 @@ EC_CMD_READ_TEST: Final = 0x0003
 EC_CMD_GET_BUILD_INFO: Final = 0x0004
 
 
-def get_build_info(ec: CrOS_EC) -> str:
+def get_build_info(ec: CrosEcClass) -> str:
     """
     Get build information
     @param ec: The CrOS_EC object.
@@ -84,7 +84,7 @@ def get_build_info(ec: CrOS_EC) -> str:
 EC_CMD_GET_CHIP_INFO: Final = 0x0005
 
 
-def get_chip_info(ec: CrOS_EC) -> dict[str, str]:
+def get_chip_info(ec: CrosEcClass) -> dict[str, str]:
     """
     Get chip info
     @param ec: The CrOS_EC object.
@@ -102,7 +102,7 @@ def get_chip_info(ec: CrOS_EC) -> dict[str, str]:
 EC_CMD_GET_BOARD_VERSION: Final = 0x0006
 
 
-def get_board_version(ec: CrOS_EC) -> UInt16:
+def get_board_version(ec: CrosEcClass) -> UInt16:
     """
     Get board HW version
     @param ec: The CrOS_EC object.
@@ -118,7 +118,7 @@ EC_CMD_READ_MEMMAP: Final = 0x0007
 EC_CMD_GET_CMD_VERSIONS: Final = 0x0008
 
 
-def get_cmd_versions(ec: CrOS_EC, cmd: UInt8 | UInt16, version: Literal[0, 1] | None = None) -> UInt32:
+def get_cmd_versions(ec: CrosEcClass, cmd: UInt8 | UInt16, version: Literal[0, 1] | None = None) -> UInt32:
     """
     Read versions supported for a command.
     @param ec: The CrOS_EC object.
@@ -144,7 +144,7 @@ EC_CMD_GET_COMMS_STATUS: Final = 0x0009
 EC_CMD_TEST_PROTOCOL: Final = 0x000A
 
 
-def test_protocol(ec: CrOS_EC, result: UInt32, ret_len: UInt32, buf: bytes, in_size: Int32 | None = None) -> bytes:
+def test_protocol(ec: CrosEcClass, result: UInt32, ret_len: UInt32, buf: bytes, in_size: Int32 | None = None) -> bytes:
     """
     Fake a variety of responses, purely for testing purposes.
     @param ec: The CrOS_EC object.
@@ -162,7 +162,7 @@ def test_protocol(ec: CrOS_EC, result: UInt32, ret_len: UInt32, buf: bytes, in_s
 EC_CMD_GET_PROTOCOL_INFO: Final = 0x000B
 
 
-def get_protocol_info(ec: CrOS_EC) -> dict[str, int]:
+def get_protocol_info(ec: CrosEcClass) -> dict[str, int]:
     """
     Get protocol info
     @param ec: The CrOS_EC object.

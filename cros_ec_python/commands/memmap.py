@@ -1,10 +1,10 @@
 import struct
-from ..cros_ec import CrOS_EC
+from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
 from ..constants.MEMMAP import *
 
 
-def get_temps(ec: CrOS_EC, adjust: int | float = -273) -> list[int | float]:
+def get_temps(ec: CrosEcClass, adjust: int | float = -273) -> list[int | float]:
     """
     Get the temperature of all temp sensors.
     @param ec: The CrOS_EC object.
@@ -30,7 +30,7 @@ def get_temps(ec: CrOS_EC, adjust: int | float = -273) -> list[int | float]:
     return ret
 
 
-def get_fans(ec: CrOS_EC) -> list[int | None]:
+def get_fans(ec: CrosEcClass) -> list[int | None]:
     """
     Get the speed of all fans.
     @param ec: The CrOS_EC object.
@@ -46,7 +46,7 @@ def get_fans(ec: CrOS_EC) -> list[int | None]:
     return [None if fan is EC_FAN_SPEED_STALLED else fan for fan in fans if fan < EC_FAN_SPEED_NOT_PRESENT]
 
 
-def get_switches(ec: CrOS_EC) -> dict[str, bool]:
+def get_switches(ec: CrosEcClass) -> dict[str, bool]:
     """
     Get the state of the switches.
     @param ec: The CrOS_EC object.
@@ -66,7 +66,7 @@ def get_switches(ec: CrOS_EC) -> dict[str, bool]:
     }
 
 
-def get_battery_values(ec: CrOS_EC) -> dict[str, int | bool | str]:
+def get_battery_values(ec: CrosEcClass) -> dict[str, int | bool | str]:
     """
     Get the values of the battery.
     @param ec: The CrOS_EC object.
@@ -102,7 +102,7 @@ def get_battery_values(ec: CrOS_EC) -> dict[str, int | bool | str]:
     }
 
 
-def get_als(ec: CrOS_EC) -> list[int | None]:
+def get_als(ec: CrosEcClass) -> list[int | None]:
     """
     Get the current value from all Ambient Light Sensors.
     @param ec: The CrOS_EC object.
@@ -113,7 +113,7 @@ def get_als(ec: CrOS_EC) -> list[int | None]:
     return [val for val in als]
 
 
-def get_accel(ec: CrOS_EC) -> list[int | None]:
+def get_accel(ec: CrosEcClass) -> list[int | None]:
     """
     Get the current value from all accelerometers.
     @param ec: The CrOS_EC object.

@@ -1,7 +1,7 @@
 import unittest
-from cros_ec_python import CrOS_EC, ECError, general as ec_general
+from cros_ec_python import get_cros_ec, ECError, general as ec_general
 
-ec = CrOS_EC()
+ec = get_cros_ec()
 
 
 class TestProtoVersion(unittest.TestCase):

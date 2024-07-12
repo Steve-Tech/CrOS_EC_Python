@@ -1,7 +1,7 @@
 import unittest
-from cros_ec_python import CrOS_EC, memmap as ec_memmap
+from cros_ec_python import get_cros_ec, memmap as ec_memmap
 
-ec = CrOS_EC()
+ec = get_cros_ec()
 
 
 class TestGetTemps(unittest.TestCase):

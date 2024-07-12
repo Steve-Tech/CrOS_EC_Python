@@ -1,14 +1,14 @@
 import unittest
-from cros_ec_python import CrOS_EC, DeviceTypes, general
+from cros_ec_python import CrosEcClass, CrosEcDev, CrosEcLpc, general
 from cros_ec_python.constants import MEMMAP
 
-ec: CrOS_EC | None = None
+ec: CrosEcClass | None = None
 
 
 class TestLinuxDev(unittest.TestCase):
     def test1_init(self):
         global ec
-        ec = CrOS_EC(DeviceTypes.LinuxDev)
+        ec = CrosEcDev()
         self.assertIsNotNone(ec)
 
     def test2_memmap(self):
@@ -24,7 +24,7 @@ class TestLinuxDev(unittest.TestCase):
 class TestLPC(unittest.TestCase):
     def test1_init(self):
         global ec
-        ec = CrOS_EC(DeviceTypes.LPC, address=0xE00)
+        ec = CrosEcLpc()
         self.assertIsNotNone(ec)
 
     def test2_memmap(self):

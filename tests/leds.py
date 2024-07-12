@@ -1,7 +1,7 @@
 import unittest
-from cros_ec_python import CrOS_EC, leds as ec_leds
+from cros_ec_python import get_cros_ec, leds as ec_leds
 
-ec = CrOS_EC()
+ec = get_cros_ec()
 
 
 class TestLedControl(unittest.TestCase):

@@ -1,7 +1,7 @@
 import unittest
-from cros_ec_python import CrOS_EC, thermal as ec_thermal
+from cros_ec_python import get_cros_ec, thermal as ec_thermal
 
-ec = CrOS_EC()
+ec = get_cros_ec()
 
 
 class TestAutoFanControl(unittest.TestCase):
