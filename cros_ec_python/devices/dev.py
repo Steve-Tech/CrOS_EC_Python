@@ -72,7 +72,7 @@ class CrosEcDev(CrosEcClass):
         """
         Close the file on exit.
         """
-        if self.fd:
+        if hasattr(self, "fd"):
             self.fd.close()
 
     def command(

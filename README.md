@@ -1,8 +1,8 @@
 # CrOS_EC_Python
 
-A Python library for interacting with a Chrome OS EC.
+A Python library for interacting with a Chrome OS EC. Commonly found in Chromebooks and Framework laptops.
 
-It provides a somewhat low-level interface to the CrOS EC, allowing you to send and receive any EC command,
+It provides a somewhat lower-level interface to the CrOS EC, allowing you to send and receive any EC command,
 and read any byte from the memory map.
 As well as a higher-level abstracted interface for easy access to some of the more common commands.
 
@@ -30,8 +30,8 @@ which is usually only accessible by root. You can either run your script as root
 or just manually change the permissions. Read permission is not needed, only write.
 
 #### LPC Bus Interface
-This library requires access to IO ports with the `CAP_SYS_RAWIO` capability.
-It's easiest just to run python as root (use a venv though).
+This library requires access to IO ports using the `CAP_SYS_RAWIO` capability.
+It's easiest just to run your script as root.
 
 ## Documentation
 

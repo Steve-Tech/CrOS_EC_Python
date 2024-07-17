@@ -9,7 +9,9 @@ from ..exceptions import ECError
 
 try:
     import portio
+    _import_portio_error = None
 except ImportError as e:
+    _import_portio_error = e
     warnings.warn(f"Failed to import portio: {e}, using /dev/port instead.", ImportWarning)
     from ..utils import devportio as portio
 
@@ -19,12 +21,17 @@ class CrosEcLpc(CrosEcClass):
     Class to interact with the EC using the LPC interface.
     """
 
-    def __init__(self, init: bool = True, address: Int32 = None):
+    def __init__(self, init: bool = True, address: Int32 = None, portio_warn: bool = True):
         """
         Detect and initialise the EC.
         :param init: Whether to initialise the EC on creation. Default is True.
         :param address: Specify a custom memmap address, will be detected if not specified.
+        :param portio_warn: Whether to warn if portio couldn't be imported. Default is True.
         """
+        if portio_warn and _import_portio_error is not None:
+            warnings.warn(f"Failed to import portio: {_import_portio_error}, using /dev/port instead.",
+                          RuntimeWarning)
+
         self.address = address
         if init:
             self.ec_init()

@@ -1,5 +1,10 @@
-# This file provides a way to interact with the /dev/port device file as an alternative to the portio library.
-# This is a lot slower than the portio library, but it doesn't require an extra package.
+"""
+This file provides a way to interact with the `/dev/port` device file
+as an alternative to the [portio](https://pypi.org/project/portio/) library.
+
+This is *a lot* slower than the portio library (especially since `/dev/port` is opened on every function call),
+but it doesn't require an extra package.
+"""
 
 def out_bytes(data: bytes, port: int) -> None:
     """
@@ -173,13 +178,13 @@ def insl(port: int, data: bytearray, count: int) -> None:
 
 def ioperm(port: int, num: int, turn_on: bool) -> None:
     """
-    ioperm stub function. It's not required for /dev/port.
+    `ioperm` stub function. It's not required for `/dev/port`.
     """
     pass
 
 
 def iopl(level: int) -> None:
     """
-    iopl stub function. It's not required for /dev/port.
+    `iopl` stub function. It's not required for `/dev/port`.
     """
     pass
