@@ -11,14 +11,14 @@ As well as a higher-level abstracted interface for easy access to some of the mo
 For a basic installation with full Linux Device support, run: 
 
 ```bash
-pip install git+https://github.com/Steve-Tech/CrOS_EC_Python.git
+pip install cros_ec_python
 ```
 
 Some interfaces require additional dependencies, for example the LPC interface performs best with the `portio` package:
 
 
 ```bash
-pip install git+https://github.com/Steve-Tech/CrOS_EC_Python.git[lpc]
+pip install cros_ec_python[lpc]
 ```
 
 ### Permissions
@@ -37,7 +37,8 @@ It's easiest just to run your script as root.
 
 The documentation for this project can be found [here](https://steve-tech.github.io/CrOS_EC_Python).
 
-There are also some examples in the `examples` directory.
+There are also some examples in the [`examples`](https://github.com/Steve-Tech/CrOS_EC_Python/tree/main/examples) directory,
+and every function has usage in the [`tests`](https://github.com/Steve-Tech/CrOS_EC_Python/tree/main/tests) directory.
 
 ### Supported Interfaces
 
