@@ -72,6 +72,11 @@ class TestCmdVersions(unittest.TestCase):
         self.assertIsInstance(resp, int)
         self.assertEqual(resp & 0x2, 0x2)
 
+    def test_invalid(self):
+        resp = ec_general.get_cmd_versions(ec, 0x7FFF)
+        print(type(self).__name__, "-", resp)
+        self.assertIsNone(resp)
+
 
 class TestTestProtocol(unittest.TestCase):
     def test_version0(self):

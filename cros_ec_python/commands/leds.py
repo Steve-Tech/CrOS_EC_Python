@@ -65,7 +65,7 @@ def led_control(ec: CrosEcClass, led_id: EcLedId, flags: UInt8, brightnesses: li
 
 def led_control_set_color(ec: CrosEcClass, led_id: EcLedId, brightness: UInt8, color: EcLedColors) -> list[UInt8]:
     """
-    Control an LED
+    Set the color of an LED
     :param ec: The CrOS_EC object.
     :param led_id: The LED to control.
     :param brightness: Brightness value.
@@ -79,7 +79,7 @@ def led_control_set_color(ec: CrosEcClass, led_id: EcLedId, brightness: UInt8, c
 
 def led_control_get_max_values(ec: CrosEcClass, led_id: EcLedId) -> list[UInt8]:
     """
-    Get the current brightness values of an LED
+    Get the available brightness value range for each color of an LED
     :param ec: The CrOS_EC object.
     :param led_id: The LED to get the brightness values of.
     :return: The available brightness value range for each color.
@@ -89,7 +89,7 @@ def led_control_get_max_values(ec: CrosEcClass, led_id: EcLedId) -> list[UInt8]:
 
 def led_control_set_auto(ec: CrosEcClass, led_id: EcLedId) -> list[UInt8]:
     """
-    Get the current brightness values of an LED
+    Set an LED back to automatic control
     :param ec: The CrOS_EC object.
     :param led_id: The LED to get the brightness values of.
     :return: The available brightness value range for each color.

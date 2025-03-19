@@ -6,6 +6,7 @@ from typing import Final, Literal
 import struct
 from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
+from ..exceptions import ECError
 
 EC_CMD_PROTO_VERSION: Final = 0x0000
 
@@ -122,25 +123,33 @@ EC_CMD_READ_MEMMAP: Final = 0x0007
 EC_CMD_GET_CMD_VERSIONS: Final = 0x0008
 
 
-def get_cmd_versions(ec: CrosEcClass, cmd: UInt8 | UInt16, version: Literal[0, 1] | None = None) -> UInt32:
+def get_cmd_versions(ec: CrosEcClass, cmd: UInt8 | UInt16, version: Literal[0, 1] | None = None) -> UInt32 | None:
     """
     Read versions supported for a command.
     :param ec: The CrOS_EC object.
     :param cmd: The command to get the supported versions of.
     :param version: The command version to use. Default is guess. 0 supports 8 bit commands, 1 supports 16 bit commands.
-    :return: The supported versions as a bitmask. Bit 0 is version 0, bit 1 is version 1, etc.
+    :return: The supported versions as a bitmask. Bit 0 is version 0, bit 1 is version 1, etc. None if the command is not supported.
     """
     if version is None:
         version = int(cmd > 0xFF)
-    match version:
-        case 0:
-            resp = ec.command(version, EC_CMD_GET_CMD_VERSIONS, 1, 4, struct.pack("<B", cmd))
-            return struct.unpack("<I", resp)[0]
-        case 1:
-            resp = ec.command(version, EC_CMD_GET_CMD_VERSIONS, 2, 4, struct.pack("<H", cmd))
-            return struct.unpack("<I", resp)[0]
-        case _:
-            raise NotImplementedError
+    try:
+        match version:
+            case 0:
+                resp = ec.command(version, EC_CMD_GET_CMD_VERSIONS, 1, 4, struct.pack("<B", cmd))
+                return struct.unpack("<I", resp)[0]
+            case 1:
+                resp = ec.command(version, EC_CMD_GET_CMD_VERSIONS, 2, 4, struct.pack("<H", cmd))
+                return struct.unpack("<I", resp)[0]
+            case _:
+                raise NotImplementedError
+    except ECError as e:
+        # EC_CMD_GET_CMD_VERSIONS throws EC_RES_INVALID_PARAM if the command is not supported
+        # Catch this and return None
+        if e.status == EcStatus.EC_RES_INVALID_PARAM.value:
+            return None
+        # Otherwise, raise the exception
+        raise e
 
 
 EC_CMD_GET_COMMS_STATUS: Final = 0x0009

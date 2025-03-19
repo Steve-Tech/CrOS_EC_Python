@@ -15,7 +15,16 @@ class ECError(IOError):
     """
 
     def __init__(self, status: int, message: str | None = None):
-        self.status = status
-        self.status_str = EcStatus(status).name
-        self.message = f"EC returned error code {self.status_str} ({self.status})" if message is None else message
+        self.status: int = status
+        """The error code returned by the EC."""
+
+        self.ec_status: EcStatus = EcStatus(status)
+        """The error code as an `cros_ec_python.constants.COMMON.EcStatus` enum."""
+
+        self.status_str: str = self.ec_status.name
+        """The error code as a string."""
+
+        self.message:str = f"EC returned error code {self.status_str} ({self.status})" if message is None else message
+        """A human-readable message describing the error."""
+
         super().__init__(self.message)

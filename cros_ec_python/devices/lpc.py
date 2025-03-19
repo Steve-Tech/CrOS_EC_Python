@@ -32,7 +32,9 @@ class CrosEcLpc(CrosEcClass):
             warnings.warn(f"Failed to import portio: {_import_portio_error}, using /dev/port instead.",
                           RuntimeWarning)
 
-        self.address = address
+        self.address: Int32 = address
+        """The address of the EC memory map."""
+
         if init:
             self.ec_init()
 
@@ -270,6 +272,10 @@ class CrosEcLpc(CrosEcClass):
         raise NotImplementedError("EC doesn't support commands!")
 
     def ec_get_cmd_version(self) -> int:
+        """
+        Find the version of the EC command protocol.
+        :return: The version of the EC command protocol.
+        """
         version = portio.inb(self.address + EC_MEMMAP_HOST_CMD_FLAGS)
 
         if version & EC_HOST_CMD_FLAG_VERSION_3:

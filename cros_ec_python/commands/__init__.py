@@ -9,7 +9,7 @@ The original command values are also present in these files.
 
 ## Format & Example
 
-Each command is a function that takes a `CrosEcClass` object as the first argument,
+Each command is a function that takes a `cros_ec_python.baseclass.CrosEcClass` object as the first argument,
 and any other arguments that are required.
 
 **For example:**

@@ -11,14 +11,14 @@ As well as a higher-level abstracted interface for easy access to some of the mo
 For a basic installation with full Linux Device support, run: 
 
 ```bash
-pip install cros_ec_python
+pip install cros-ec-python
 ```
 
 Some interfaces require additional dependencies, for example the LPC interface performs best with the `portio` package:
 
 
 ```bash
-pip install cros_ec_python[lpc]
+pip install cros-ec-python[lpc]
 ```
 
 ### Permissions
@@ -39,6 +39,29 @@ The documentation for this project can be found [here](https://steve-tech.github
 
 There are also some examples in the [`examples`](https://github.com/Steve-Tech/CrOS_EC_Python/tree/main/examples) directory,
 and every function has usage in the [`tests`](https://github.com/Steve-Tech/CrOS_EC_Python/tree/main/tests) directory.
+
+### Runnings Tests
+
+This package uses the built-in `unittest` module for testing. To run the tests, simply run:
+
+```bash
+cd tests
+python -m unittest
+```
+
+### Generating Documentation
+
+The documentation is generated using `pdoc`. To generate the documentation, run:
+
+```bash
+pdoc -o docs/ cros_ec_python
+```
+
+Or to generate the documentation and serve it locally:
+
+```bash
+pdoc cros_ec_python
+```
 
 ### Supported Interfaces
 
@@ -77,7 +100,7 @@ The implemented commands are split up into modules for maintainability reasons.
 **Get/Set miscellaneous values (`system`)**
 
 - [ ] `EC_CMD_GSV_PAUSE_IN_S5` (`0x000C`)
-- [ ] `EC_CMD_GET_FEATURES` (`0x000D`)
+- [x] `EC_CMD_GET_FEATURES` (`0x000D`)
 - [ ] `EC_CMD_GET_SKU_ID` (`0x000E`)
 - [ ] `EC_CMD_SET_SKU_ID` (`0x000F`)
 
@@ -178,7 +201,7 @@ The implemented commands are split up into modules for maintainability reasons.
 
 **Temperature sensor commands (`thermal`)**
 
-- [ ] `EC_CMD_TEMP_SENSOR_GET_INFO` (`0x0070`)
+- [x] `EC_CMD_TEMP_SENSOR_GET_INFO` (`0x0070`)
 
 **Host event commands (`events`)**
 
@@ -422,25 +445,38 @@ The implemented commands are split up into modules for maintainability reasons.
 
 - [ ] `EC_CMD_FLASH_NOTIFIED` (`0x3E01`)
 - [ ] `EC_CMD_FACTORY_MODE` (`0x3E02`)
-- [ ] `EC_CMD_CHARGE_LIMIT_CONTROL` (`0x3E03`)
-- [ ] `EC_CMD_PWM_GET_FAN_ACTUAL_RPM` (`0x3E04`)
+- [x] `EC_CMD_CHARGE_LIMIT_CONTROL` (`0x3E03`)
+- [x] `EC_CMD_PWM_GET_FAN_ACTUAL_RPM` (`0x3E04`)
 - [ ] `EC_CMD_SET_AP_REBOOT_DELAY` (`0x3E05`)
 - [ ] `EC_CMD_ME_CONTROL` (`0x3E06`)
-- [ ] `EC_CMD_CUSTOM_HELLO` (`0x3E07`)
+- [ ] `EC_CMD_NON_ACPI_NOTIFY` (`0x3E07`)
 - [ ] `EC_CMD_DISABLE_PS2_EMULATION` (`0x3E08`)
-- [ ] `EC_CMD_CHASSIS_INTRUSION` (`0x3E09`)
+- [x] `EC_CMD_CHASSIS_INTRUSION` (`0x3E09`)
 - [ ] `EC_CMD_BB_RETIMER_CONTROL` (`0x3E0A`)
 - [ ] `EC_CMD_DIAGNOSIS` (`0x3E0B`)
 - [ ] `EC_CMD_UPDATE_KEYBOARD_MATRIX` (`0x3E0C`)
 - [ ] `EC_CMD_VPRO_CONTROL` (`0x3E0D`)
-- [ ] `EC_CMD_FP_LED_LEVEL_CONTROL` (`0x3E0E`)
-- [ ] `EC_CMD_CHASSIS_OPEN_CHECK` (`0x3E0F`)
-- [ ] `EC_CMD_CUSTOM_HELLO_ACPI` (`0x3E10`)
+- [x] `EC_CMD_FP_LED_LEVEL_CONTROL` (`0x3E0E`)
+- [x] `EC_CMD_CHASSIS_OPEN_CHECK` (`0x3E0F`)
+- [ ] `EC_CMD_ACPI_NOTIFY` (`0x3E10`)
 - [ ] `EC_CMD_READ_PD_VERSION` (`0x3E11`)
 - [ ] `EC_CMD_THERMAL_QEVENT` (`0x3E12`)
 - [ ] `EC_CMD_STANDALONE_MODE` (`0x3E13`)
-- [ ] `EC_CMD_PRIVACY_SWITCHES_CHECK_MODE` (`0x3E14`)
-- [ ] `EC_CMD_CHASSIS_COUNTER` (`0x3E15`)
+- [x] `EC_CMD_PRIVACY_SWITCHES_CHECK_MODE` (`0x3E14`)
+- [x] `EC_CMD_CHASSIS_COUNTER` (`0x3E15`)
+- [ ] `EC_CMD_CHECK_DECK_STATE` (`0x3E16`)
+- [x] `EC_CMD_GET_SIMPLE_VERSION` (`0x3E17`)
+- [x] `EC_CMD_GET_ACTIVE_CHARGE_PD_CHIP` (`0x3E18`)
+- [ ] `EC_CMD_UEFI_APP_MODE` (`0x3E19`)
+- [ ] `EC_CMD_UEFI_APP_BTN_STATUS` (`0x3E1A`)
+- [ ] `EC_CMD_EXPANSION_BAY_STATUS` (`0x3E1B`)
+- [ ] `EC_CMD_GET_HW_DIAG` (`0x3E1C`)
+- [?] `EC_CMD_GET_GPU_SERIAL` (`0x3E1D`)
+- [?] `EC_CMD_GET_GPU_PCIE` (`0x3E1E`)
+- [ ] `EC_CMD_PROGRAM_GPU_EEPROM` (`0x3E1F`)
+- [?] `EC_CMD_FP_CONTROL` (`0x3E20`)
+- [ ] `EC_CMD_GET_CUTOFF_STATUS` (`0x3E21`)
+- [x] `EC_CMD_BATTERY_EXTENDER` (`0x3E24`)
 
 </details>
 

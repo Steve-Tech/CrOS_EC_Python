@@ -1,7 +1,7 @@
 import errno
 from fcntl import ioctl
 import struct
-from typing import Final
+from typing import Final, IO
 import warnings
 import os
 
@@ -44,7 +44,7 @@ class CrosEcDev(CrosEcClass):
     Class to interact with the EC using the Linux cros_ec device.
     """
 
-    def __init__(self, fd=None, memmap_ioctl: bool = True):
+    def __init__(self, fd: IO | None = None, memmap_ioctl: bool = True):
         """
         Initialise the EC using the Linux cros_ec device.
         :param fd: Use a custom file description, opens /dev/cros_ec by default.
@@ -52,8 +52,12 @@ class CrosEcDev(CrosEcClass):
         """
         if fd is None:
             fd = open("/dev/cros_ec", "wb", buffering=0)
-        self.fd = fd
-        self.memmap_ioctl = memmap_ioctl
+
+        self.fd: IO = fd
+        """The file descriptor for /dev/cros_ec."""
+
+        self.memmap_ioctl: bool = memmap_ioctl
+        """Use ioctl for memmap, if False the READ_MEMMAP command will be used instead."""
 
     def __del__(self):
         self.ec_exit()
