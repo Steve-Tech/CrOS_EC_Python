@@ -24,6 +24,15 @@ pip install cros-ec-python[lpc]
 ### Permissions
 Since we're playing around with actual hardware, we're going to need some pretty high permissions.
 
+The recommended way is to copy [`60-cros_ec_python.rules`](60-cros_ec_python.rules) to `/etc/udev/rules.d/` and run:
+
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+This will give the current user access to both `/dev/cros_ec` for the Linux Device interface, and the IO ports for the LPC interface.
+
 #### Linux Device Interface
 This library requires write permission to `/dev/cros_ec` when using the Linux Device interface,
 which is usually only accessible by root. You can either run your script as root, add a udev rule,
