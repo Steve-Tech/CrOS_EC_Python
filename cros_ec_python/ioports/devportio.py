@@ -14,20 +14,20 @@ class DevPortIO(PortIOClass):
     A class to interact with the `/dev/port` device file.
     """
 
-    dev_port = None
+    _dev_port = None
 
     def __init__(self):
         """
         Initialize the `/dev/port` device file.
         """
-        self.dev_port = open("/dev/port", "r+b", buffering=0)
+        self._dev_port = open("/dev/port", "r+b", buffering=0)
 
     def __del__(self):
         """
         Close the `/dev/port` device file.
         """
-        if self.dev_port:
-            self.dev_port.close()
+        if self._dev_port:
+            self._dev_port.close()
 
     def out_bytes(self, data: bytes, port: int) -> None:
         """
@@ -35,8 +35,8 @@ class DevPortIO(PortIOClass):
         :param data: Data to write.
         :param port: Port to write to.
         """
-        self.dev_port.seek(port)
-        self.dev_port.write(data)
+        self._dev_port.seek(port)
+        self._dev_port.write(data)
 
     def outb(self, data: int, port: int) -> None:
         """
@@ -69,8 +69,8 @@ class DevPortIO(PortIOClass):
         :param num: Number of bytes to read.
         :return: Data read.
         """
-        self.dev_port.seek(port)
-        return self.dev_port.read(num)
+        self._dev_port.seek(port)
+        return self._dev_port.read(num)
 
     def inb(self, port: int) -> int:
         """

@@ -2,7 +2,7 @@
 This file provides a way to interact with the WinRing0 library for port I/O on Windows.
 
 For this to work, you will need to copy `WinRing0x64.dll` and `WinRing0x64.sys` to either
-the same directory as `python.exe`, or to `C:\Windows\System32`.
+the same directory as `python.exe`, or to `C:\\Windows\\System32`.
 """
 
 from enum import Enum

@@ -15,13 +15,18 @@ class CrosEcLpc(CrosEcClass):
     Class to interact with the EC using the LPC interface.
     """
 
-    def __init__(self, init: bool = True, address: Int32 = None, portio: PortIO = PortIO()):
+    def __init__(
+        self, init: bool = True, address: Int32 = None, portio: PortIO | None = None
+    ):
         """
         Detect and initialise the EC.
         :param init: Whether to initialise the EC on creation. Default is True.
         :param address: Specify a custom memmap address, will be detected if not specified.
         :param portio: PortIO object to use. Default is auto-detected.
         """
+
+        if portio is None:
+            portio = PortIO()
 
         self.portio: PortIO = portio
         """PortIO object to use."""
@@ -39,7 +44,10 @@ class CrosEcLpc(CrosEcClass):
         """
         with open("/proc/ioports", "r") as f:
             for line in f:
-                if line.lstrip()[:4] in (format(EC_LPC_ADDR_MEMMAP, "04x"), format(EC_LPC_ADDR_MEMMAP_FWAMD, "04x")):
+                if line.lstrip()[:4] in (
+                    format(EC_LPC_ADDR_MEMMAP, "04x"),
+                    format(EC_LPC_ADDR_MEMMAP_FWAMD, "04x"),
+                ):
                     return True
 
     @staticmethod
@@ -53,10 +61,12 @@ class CrosEcLpc(CrosEcClass):
             if res := portio.ioperm(a, EC_MEMMAP_SIZE, True):
                 if res == errno.EPERM:
                     raise PermissionError("Permission denied. Try running as root.")
-                warnings.warn(f"ioperm returned {errno.errorcode[res]} ({res}), skipping address {a}...")
+                warnings.warn(
+                    f"ioperm returned {errno.errorcode[res]} ({res}), skipping address {a}..."
+                )
                 continue
             # Check for 'EC' in memory map
-            if portio.inw(a + EC_MEMMAP_ID) == int.from_bytes(b'EC', "little"):
+            if portio.inw(a + EC_MEMMAP_ID) == int.from_bytes(b"EC", "little"):
                 # Found it!
                 return a
             else:
@@ -71,15 +81,23 @@ class CrosEcLpc(CrosEcClass):
         """
         # Find memmap address
         if self.address is None:
-            self.address = self.find_address(EC_LPC_ADDR_MEMMAP, EC_LPC_ADDR_MEMMAP_FWAMD, portio=self.portio)
+            self.address = self.find_address(
+                EC_LPC_ADDR_MEMMAP, EC_LPC_ADDR_MEMMAP_FWAMD, portio=self.portio
+            )
             # find_address will leave ioperm enabled for the memmap
             if self.address is None:
                 raise OSError("Could not find EC!")
 
         # Request I/O permissions
-        if (res := self.portio.ioperm(EC_LPC_ADDR_HOST_DATA, EC_MEMMAP_SIZE, True)) or \
-                (res := self.portio.ioperm(EC_LPC_ADDR_HOST_CMD, EC_MEMMAP_SIZE, True)) or \
-                (res := self.portio.ioperm(EC_LPC_ADDR_HOST_PACKET, EC_LPC_HOST_PACKET_SIZE, True)):
+        if (
+            (res := self.portio.ioperm(EC_LPC_ADDR_HOST_DATA, EC_MEMMAP_SIZE, True))
+            or (res := self.portio.ioperm(EC_LPC_ADDR_HOST_CMD, EC_MEMMAP_SIZE, True))
+            or (
+                res := self.portio.ioperm(
+                    EC_LPC_ADDR_HOST_PACKET, EC_LPC_HOST_PACKET_SIZE, True
+                )
+            )
+        ):
             if res == errno.EPERM:
                 raise PermissionError("Permission denied. Try running as root.")
             else:
@@ -95,7 +113,9 @@ class CrosEcLpc(CrosEcClass):
             raise OSError("No EC detected. Invalid status.")
 
         # Check for 'EC' in memory map
-        if self.portio.inw(self.address + EC_MEMMAP_ID) != int.from_bytes(b'EC', "little"):
+        if self.portio.inw(self.address + EC_MEMMAP_ID) != int.from_bytes(
+            b"EC", "little"
+        ):
             raise OSError("Invalid EC signature.")
 
         self.ec_get_cmd_version()
@@ -111,8 +131,15 @@ class CrosEcLpc(CrosEcClass):
         while self.portio.inb(status_addr) & EC_LPC_STATUS_BUSY_MASK:
             pass
 
-    def ec_command_v2(self, version: UInt8, command: UInt32, outsize: UInt16, insize: UInt32, data: bytes = None,
-                      warn: bool = True):
+    def ec_command_v2(
+        self,
+        version: UInt8,
+        command: UInt32,
+        outsize: UInt16,
+        insize: UInt32,
+        data: bytes = None,
+        warn: bool = True,
+    ):
         """
         Send a command to the EC and return the response. Uses the v2 command protocol over LPC. UNTESTED!
         :param version: Command version number (often 0).
@@ -123,10 +150,15 @@ class CrosEcLpc(CrosEcClass):
         :param warn: Whether to warn if the response size is not as expected. Default is True.
         :return: Response from the EC.
         """
-        warnings.warn("Support for v2 commands haven't been tested! Open an issue on github if it does "
-                      "or doesn't work: https://github.com/Steve-Tech/CrOS_EC_Python/issues", RuntimeWarning)
+        warnings.warn(
+            "Support for v2 commands haven't been tested! Open an issue on github if it does "
+            "or doesn't work: https://github.com/Steve-Tech/CrOS_EC_Python/issues",
+            RuntimeWarning,
+        )
         csum = 0
-        args = bytearray(struct.pack("BBBB", EC_HOST_ARGS_FLAG_FROM_HOST, version, outsize, csum))
+        args = bytearray(
+            struct.pack("BBBB", EC_HOST_ARGS_FLAG_FROM_HOST, version, outsize, csum)
+        )
         # (flags: UInt8, command_version: UInt8, data_size: UInt8, checksum: UInt8)
 
         # Copy data and start checksum
@@ -138,7 +170,7 @@ class CrosEcLpc(CrosEcClass):
         for i in range(len(args)):
             csum += args[i]
 
-        args[3] = csum & 0xff
+        args[3] = csum & 0xFF
 
         # Copy header
         for i in range(len(args)):
@@ -168,7 +200,10 @@ class CrosEcLpc(CrosEcClass):
             raise IOError("Invalid response!")
 
         if response[2] != insize and warn:
-            warnings.warn(f"Expected {insize} bytes, got {response[2]} back from EC", RuntimeWarning)
+            warnings.warn(
+                f"Expected {insize} bytes, got {response[2]} back from EC",
+                RuntimeWarning,
+            )
 
         # Read back data
         data = bytearray()
@@ -176,13 +211,20 @@ class CrosEcLpc(CrosEcClass):
             data.append(self.portio.inb(EC_LPC_ADDR_HOST_PARAM + i))
             csum += data[i]
 
-        if response[3] != (csum & 0xff):
+        if response[3] != (csum & 0xFF):
             raise IOError("Checksum error!")
 
         return bytes(data)
 
-    def ec_command_v3(self, version: UInt8, command: UInt32, outsize: UInt16, insize: UInt32, data: bytes = None,
-                      warn: bool = True) -> bytes:
+    def ec_command_v3(
+        self,
+        version: UInt8,
+        command: UInt32,
+        outsize: UInt16,
+        insize: UInt32,
+        data: bytes = None,
+        warn: bool = True,
+    ) -> bytes:
         """
         Send a command to the EC and return the response. Uses the v3 command protocol over LPC.
         :param version: Command version number (often 0).
@@ -194,7 +236,11 @@ class CrosEcLpc(CrosEcClass):
         :return: Response from the EC.
         """
         csum = 0
-        request = bytearray(struct.pack("BBHBxH", EC_HOST_REQUEST_VERSION, csum, command, version, outsize))
+        request = bytearray(
+            struct.pack(
+                "BBHBxH", EC_HOST_REQUEST_VERSION, csum, command, version, outsize
+            )
+        )
         # (struct_version: UInt8, checksum: UInt8, command: UInt16,
         # command_version: UInt8, reserved: UInt8, data_len: UInt16)
 
@@ -211,7 +257,7 @@ class CrosEcLpc(CrosEcClass):
         for i in range(len(request)):
             csum += request[i]
 
-        request[1] = (-csum) & 0xff
+        request[1] = (-csum) & 0xFF
 
         # Copy header
         for i in range(len(request)):
@@ -245,7 +291,10 @@ class CrosEcLpc(CrosEcClass):
             raise IOError("Invalid response!")
 
         if response[3] != insize and warn:
-            warnings.warn(f"Expected {insize} bytes, got {response[3]} back from EC", RuntimeWarning)
+            warnings.warn(
+                f"Expected {insize} bytes, got {response[3]} back from EC",
+                RuntimeWarning,
+            )
 
         # Read back data
         data = bytearray()
@@ -253,7 +302,7 @@ class CrosEcLpc(CrosEcClass):
             data.append(self.portio.inb(EC_LPC_ADDR_HOST_PACKET + len(data_out) + i))
             csum += data[i]
 
-        if csum & 0xff:
+        if csum & 0xFF:
             raise IOError("Checksum error!")
 
         return bytes(data)

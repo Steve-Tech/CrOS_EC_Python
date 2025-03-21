@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-docs = ["pdoc"]
+docs = ["pdoc", "portio"]
 lpc = ["portio"]
 
 [project.urls]
