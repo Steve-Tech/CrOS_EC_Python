@@ -7,13 +7,7 @@ from ..constants.LPC import *
 from ..constants.MEMMAP import *
 from ..exceptions import ECError
 
-try:
-    import portio
-    _import_portio_error = None
-except ImportError as e:
-    _import_portio_error = e
-    warnings.warn(f"Failed to import portio: {e}, using /dev/port instead.", ImportWarning)
-    from ..utils import devportio as portio
+from ..ioports import PortIO
 
 
 class CrosEcLpc(CrosEcClass):
@@ -21,16 +15,16 @@ class CrosEcLpc(CrosEcClass):
     Class to interact with the EC using the LPC interface.
     """
 
-    def __init__(self, init: bool = True, address: Int32 = None, portio_warn: bool = True):
+    def __init__(self, init: bool = True, address: Int32 = None, portio: PortIO = PortIO()):
         """
         Detect and initialise the EC.
         :param init: Whether to initialise the EC on creation. Default is True.
         :param address: Specify a custom memmap address, will be detected if not specified.
-        :param portio_warn: Whether to warn if portio couldn't be imported. Default is True.
+        :param portio: PortIO object to use. Default is auto-detected.
         """
-        if portio_warn and _import_portio_error is not None:
-            warnings.warn(f"Failed to import portio: {_import_portio_error}, using /dev/port instead.",
-                          RuntimeWarning)
+
+        self.portio: PortIO = portio
+        """PortIO object to use."""
 
         self.address: Int32 = address
         """The address of the EC memory map."""
@@ -49,7 +43,7 @@ class CrosEcLpc(CrosEcClass):
                     return True
 
     @staticmethod
-    def find_address(*addresses) -> int | None:
+    def find_address(*addresses, portio: PortIO = PortIO()) -> int | None:
         """
         Find the EC memory map address.
         :param addresses: A list of addresses to check.
@@ -77,15 +71,15 @@ class CrosEcLpc(CrosEcClass):
         """
         # Find memmap address
         if self.address is None:
-            self.address = self.find_address(EC_LPC_ADDR_MEMMAP, EC_LPC_ADDR_MEMMAP_FWAMD)
+            self.address = self.find_address(EC_LPC_ADDR_MEMMAP, EC_LPC_ADDR_MEMMAP_FWAMD, portio=self.portio)
             # find_address will leave ioperm enabled for the memmap
             if self.address is None:
                 raise OSError("Could not find EC!")
 
         # Request I/O permissions
-        if (res := portio.ioperm(EC_LPC_ADDR_HOST_DATA, EC_MEMMAP_SIZE, True)) or \
-                (res := portio.ioperm(EC_LPC_ADDR_HOST_CMD, EC_MEMMAP_SIZE, True)) or \
-                (res := portio.ioperm(EC_LPC_ADDR_HOST_PACKET, EC_LPC_HOST_PACKET_SIZE, True)):
+        if (res := self.portio.ioperm(EC_LPC_ADDR_HOST_DATA, EC_MEMMAP_SIZE, True)) or \
+                (res := self.portio.ioperm(EC_LPC_ADDR_HOST_CMD, EC_MEMMAP_SIZE, True)) or \
+                (res := self.portio.ioperm(EC_LPC_ADDR_HOST_PACKET, EC_LPC_HOST_PACKET_SIZE, True)):
             if res == errno.EPERM:
                 raise PermissionError("Permission denied. Try running as root.")
             else:
@@ -94,14 +88,14 @@ class CrosEcLpc(CrosEcClass):
         status = 0xFF
 
         # Read status bits, at least one should be 0
-        status &= portio.inb(EC_LPC_ADDR_HOST_CMD)
-        status &= portio.inb(EC_LPC_ADDR_HOST_DATA)
+        status &= self.portio.inb(EC_LPC_ADDR_HOST_CMD)
+        status &= self.portio.inb(EC_LPC_ADDR_HOST_DATA)
 
         if status == 0xFF:
             raise OSError("No EC detected. Invalid status.")
 
         # Check for 'EC' in memory map
-        if portio.inw(self.address + EC_MEMMAP_ID) != int.from_bytes(b'EC', "little"):
+        if self.portio.inw(self.address + EC_MEMMAP_ID) != int.from_bytes(b'EC', "little"):
             raise OSError("Invalid EC signature.")
 
         self.ec_get_cmd_version()
@@ -109,13 +103,12 @@ class CrosEcLpc(CrosEcClass):
     def ec_exit(self) -> None:
         pass
 
-    @staticmethod
-    def wait_for_ec(status_addr: Int32 = EC_LPC_ADDR_HOST_CMD) -> None:
+    def wait_for_ec(self, status_addr: Int32 = EC_LPC_ADDR_HOST_CMD) -> None:
         """
         Wait for the EC to be ready after sending a command.
         :param status_addr: The status register to read.
         """
-        while portio.inb(status_addr) & EC_LPC_STATUS_BUSY_MASK:
+        while self.portio.inb(status_addr) & EC_LPC_STATUS_BUSY_MASK:
             pass
 
     def ec_command_v2(self, version: UInt8, command: UInt32, outsize: UInt16, insize: UInt32, data: bytes = None,
@@ -138,7 +131,7 @@ class CrosEcLpc(CrosEcClass):
 
         # Copy data and start checksum
         for i in range(outsize):
-            portio.outb(data[i], EC_LPC_ADDR_HOST_PARAM + i)
+            self.portio.outb(data[i], EC_LPC_ADDR_HOST_PARAM + i)
             csum += data[i]
 
         # Finish checksum
@@ -149,15 +142,15 @@ class CrosEcLpc(CrosEcClass):
 
         # Copy header
         for i in range(len(args)):
-            portio.outb(args[i], EC_LPC_ADDR_HOST_ARGS + i)
+            self.portio.outb(args[i], EC_LPC_ADDR_HOST_ARGS + i)
 
         # Start the command
-        portio.outb(command, EC_LPC_ADDR_HOST_CMD)
+        self.portio.outb(command, EC_LPC_ADDR_HOST_CMD)
 
         self.wait_for_ec()
 
         # Check result
-        i = portio.inb(EC_LPC_ADDR_HOST_DATA)
+        i = self.portio.inb(EC_LPC_ADDR_HOST_DATA)
         if i:
             raise ECError(i)
 
@@ -165,7 +158,7 @@ class CrosEcLpc(CrosEcClass):
         csum = 0
         data_out = bytearray(len(args))
         for i in range(len(data_out)):
-            data_out[i] = portio.inb(EC_LPC_ADDR_HOST_ARGS + i)
+            data_out[i] = self.portio.inb(EC_LPC_ADDR_HOST_ARGS + i)
             csum += data_out[i]
 
         response = struct.unpack("BBBB", data_out)
@@ -180,7 +173,7 @@ class CrosEcLpc(CrosEcClass):
         # Read back data
         data = bytearray()
         for i in range(response[2]):
-            data.append(portio.inb(EC_LPC_ADDR_HOST_PARAM + i))
+            data.append(self.portio.inb(EC_LPC_ADDR_HOST_PARAM + i))
             csum += data[i]
 
         if response[3] != (csum & 0xff):
@@ -211,7 +204,7 @@ class CrosEcLpc(CrosEcClass):
 
         # Copy data and start checksum
         for i in range(outsize):
-            portio.outb(data[i], EC_LPC_ADDR_HOST_PACKET + len(request) + i)
+            self.portio.outb(data[i], EC_LPC_ADDR_HOST_PACKET + len(request) + i)
             csum += data[i]
 
         # Finish checksum
@@ -222,15 +215,15 @@ class CrosEcLpc(CrosEcClass):
 
         # Copy header
         for i in range(len(request)):
-            portio.outb(request[i], EC_LPC_ADDR_HOST_PACKET + i)
+            self.portio.outb(request[i], EC_LPC_ADDR_HOST_PACKET + i)
 
         # Start the command
-        portio.outb(EC_COMMAND_PROTOCOL_3, EC_LPC_ADDR_HOST_CMD)
+        self.portio.outb(EC_COMMAND_PROTOCOL_3, EC_LPC_ADDR_HOST_CMD)
 
         self.wait_for_ec()
 
         # Check result
-        i = portio.inb(EC_LPC_ADDR_HOST_DATA)
+        i = self.portio.inb(EC_LPC_ADDR_HOST_DATA)
         if i:
             raise ECError(i)
 
@@ -238,7 +231,7 @@ class CrosEcLpc(CrosEcClass):
         csum = 0
         data_out = bytearray(1 + 1 + 2 + 2 + 2)
         for i in range(len(data_out)):
-            data_out[i] = portio.inb(EC_LPC_ADDR_HOST_PACKET + i)
+            data_out[i] = self.portio.inb(EC_LPC_ADDR_HOST_PACKET + i)
             csum += data_out[i]
 
         response = struct.unpack("BBHHH", data_out)
@@ -257,7 +250,7 @@ class CrosEcLpc(CrosEcClass):
         # Read back data
         data = bytearray()
         for i in range(response[3]):
-            data.append(portio.inb(EC_LPC_ADDR_HOST_PACKET + len(data_out) + i))
+            data.append(self.portio.inb(EC_LPC_ADDR_HOST_PACKET + len(data_out) + i))
             csum += data[i]
 
         if csum & 0xff:
@@ -276,7 +269,7 @@ class CrosEcLpc(CrosEcClass):
         Find the version of the EC command protocol.
         :return: The version of the EC command protocol.
         """
-        version = portio.inb(self.address + EC_MEMMAP_HOST_CMD_FLAGS)
+        version = self.portio.inb(self.address + EC_MEMMAP_HOST_CMD_FLAGS)
 
         if version & EC_HOST_CMD_FLAG_VERSION_3:
             self.command = self.ec_command_v3
@@ -298,5 +291,5 @@ class CrosEcLpc(CrosEcClass):
         """
         data = bytearray()
         for i in range(num_bytes):
-            data.append(portio.inb(self.address + offset + i))
+            data.append(self.portio.inb(self.address + offset + i))
         return bytes(data)
