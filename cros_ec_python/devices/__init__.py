@@ -6,7 +6,7 @@ The classes for each of the different interfaces supported by the library live i
 If you don't understand what this does, just use `cros_ec_python.cros_ec.get_cros_ec()` to pick an interface.
 
 All device class implementations should inherit from `cros_ec_python.baseclass.CrosEcClass`,
-and implement the methods described in that class. This allows everyone to use the standardised
+and implement the methods described in that class. This allows everything to use the standardised
 `cros_ec_python.baseclass.CrosEcClass.command` method to send commands to the EC, and
 `cros_ec_python.baseclass.CrosEcClass.memmap` to read memory from the EC.
 
@@ -17,17 +17,18 @@ Devices can have optional specific arguments in their `__init__` method, but oth
 **Initialisation**
 
 ```python
-from cros_ec_python import get_cros_ec, CrosEcLpc, CrosEcDev
-
 # Pick one of the following:
 
 # Automatically pick the right class
+from cros_ec_python import get_cros_ec
 ec = get_cros_ec()
 
 # Manually pick LinuxDev
+from cros_ec_python import CrosEcDev
 ec = CrosEcDev()
 
 # Manually pick LPC
+from cros_ec_python import CrosEcLpc
 ec = CrosEcLpc()
 
 # Manually pick LPC with a specific address

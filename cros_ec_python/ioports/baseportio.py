@@ -3,7 +3,7 @@ This file includes the base class for Port I/O backends.
 
 It doesn't do anything on its own, but it is used as a base for all port I/O backends to inherit from.
 
-See `cros_ec_python.io` for a few examples of a classes that inherits from this class.
+See `cros_ec_python.ioports` for a few examples of a class that inherits from this class.
 """
 
 import abc
