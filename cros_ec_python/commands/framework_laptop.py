@@ -130,12 +130,14 @@ class FpLedBrightnessLevel(Enum):
     FP_LED_BRIGHTNESS_LEVEL_LOW = 2
 
 
-def set_fp_led_level(ec: CrosEcClass, level: FpLedBrightnessLevel) -> None:
+def set_fp_led_level(ec: CrosEcClass, level: FpLedBrightnessLevel | int) -> None:
     """
     Set the fingerprint LED level.
     :param ec: The CrOS_EC object.
     :param level: The level to set the fingerprint LED to.
     """
+    if isinstance(level, FpLedBrightnessLevel):
+        level = level.value
     data = struct.pack("<Bx", level)
     ec.command(0, EC_CMD_FP_LED_LEVEL_CONTROL, 2, 0, data)
 

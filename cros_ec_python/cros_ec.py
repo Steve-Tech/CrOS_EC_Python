@@ -5,9 +5,13 @@ For example, you can use `get_cros_ec()` instead of manually picking between
 `cros_ec_python.devices.lpc.CrosEcLpc` and `cros_ec_python.devices.dev.CrosEcDev`.
 """
 
-from .baseclass import CrosEcClass
-from .devices import dev, lpc
+import os
+
 from .constants.COMMON import *
+from .baseclass import CrosEcClass
+from .devices import lpc
+if os.name == "posix":
+    from .devices import dev
 
 
 class DeviceTypes(Enum):

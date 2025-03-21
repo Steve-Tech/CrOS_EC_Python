@@ -7,6 +7,7 @@ See `cros_ec_python.devices` for a few examples of a classes that inherits from 
 """
 
 import abc
+
 from .constants.COMMON import *
 
 
@@ -38,8 +39,15 @@ class CrosEcClass(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def command(self, version: Int32, command: Int32, outsize: Int32, insize: Int32, data: bytes = None,
-                warn: bool = True) -> bytes:
+    def command(
+        self,
+        version: Int32,
+        command: Int32,
+        outsize: Int32,
+        insize: Int32,
+        data: bytes = None,
+        warn: bool = True,
+    ) -> bytes:
         """
         Send a command to the EC and return the response.
         :param version: Command version number (often 0).

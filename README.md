@@ -8,6 +8,8 @@ As well as a higher-level abstracted interface for easy access to some of the mo
 
 ## Installation
 
+### Linux
+
 For a basic installation with full Linux Device support, run: 
 
 ```bash
@@ -21,7 +23,7 @@ Some interfaces require additional dependencies, for example the LPC interface p
 pip install cros-ec-python[lpc]
 ```
 
-### Permissions
+#### Permissions
 Since we're playing around with actual hardware, we're going to need some pretty high permissions.
 
 The recommended way is to copy [`60-cros_ec_python.rules`](60-cros_ec_python.rules) to `/etc/udev/rules.d/` and run:
@@ -33,14 +35,28 @@ sudo udevadm trigger
 
 This will give the current user access to both `/dev/cros_ec` for the Linux Device interface, and the IO ports for the LPC interface.
 
-#### Linux Device Interface
+##### Linux Device Interface
 This library requires write permission to `/dev/cros_ec` when using the Linux Device interface,
 which is usually only accessible by root. You can either run your script as root, add a udev rule,
 or just manually change the permissions. Read permission is not needed, only write.
 
-#### LPC Bus Interface
+##### LPC Bus Interface
 This library requires access to IO ports using the `CAP_SYS_RAWIO` capability.
 It's easiest just to run your script as root.
+
+### Windows
+
+The Windows version requires WinRing0 to access IO ports. You can find signed versions online, that do not require disabling driver signature enforcement.
+You will need to copy `WinRing0x64.dll` and `WinRing0x64.sys` to either the same
+directory as `python.exe`, or to `C:\Windows\System32`.
+
+Then you can install the package with:
+
+```bash
+pip install cros-ec-python
+```
+
+WinRing0 will likely require administrator permissions to access IO ports, so you may need to run your script as an administrator.
 
 ## Documentation
 
@@ -49,7 +65,7 @@ The documentation for this project can be found [here](https://steve-tech.github
 There are also some examples in the [`examples`](https://github.com/Steve-Tech/CrOS_EC_Python/tree/main/examples) directory,
 and every function has usage in the [`tests`](https://github.com/Steve-Tech/CrOS_EC_Python/tree/main/tests) directory.
 
-### Runnings Tests
+### Running Tests
 
 This package uses the built-in `unittest` module for testing. To run the tests, simply run:
 
@@ -57,6 +73,8 @@ This package uses the built-in `unittest` module for testing. To run the tests, 
 cd tests
 python -m unittest
 ```
+
+***Note: This will test against your EC, nothing is mocked.***
 
 ### Generating Documentation
 

@@ -10,6 +10,11 @@ from .baseportio import PortIOClass
 
 
 class DevPortIO(PortIOClass):
+    """
+    A class to interact with the `/dev/port` device file.
+    """
+
+    dev_port = None
 
     def __init__(self):
         """
@@ -21,7 +26,8 @@ class DevPortIO(PortIOClass):
         """
         Close the `/dev/port` device file.
         """
-        self.dev_port.close()
+        if self.dev_port:
+            self.dev_port.close()
 
     def out_bytes(self, data: bytes, port: int) -> None:
         """

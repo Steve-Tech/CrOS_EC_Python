@@ -4,7 +4,9 @@ This module is used to import the correct portio module based on the OS.
 
 import os
 
-if os.name == "posix":
+if os.name == "nt":
+    from .winportio import WinPortIO as PortIO
+elif os.name == "posix":
     try:
         from .x86portio import IoPortIo as PortIO
     except ImportError:

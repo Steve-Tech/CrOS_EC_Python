@@ -11,6 +11,10 @@ import portio
 
 
 class IoPortIo(PortIOClass):
+    """
+    A class to interact with the portio module for x86 port I/O.
+    """
+
     portio = portio
 
     def outb(self, data: int, port: int) -> None:
