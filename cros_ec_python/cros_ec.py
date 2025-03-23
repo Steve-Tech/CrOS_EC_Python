@@ -12,6 +12,8 @@ from .baseclass import CrosEcClass
 from .devices import lpc
 if os.name == "posix":
     from .devices import dev
+else:
+    dev = None
 
 
 class DeviceTypes(Enum):
@@ -34,9 +36,12 @@ def pick_device() -> DeviceTypes:
     * `DeviceTypes.LinuxDev` (see `cros_ec_python.devices.dev.CrosEcDev.detect()`)
     * `DeviceTypes.LPC` (see `cros_ec_python.devices.lpc.CrosEcLpc.detect()`)
     """
-    if dev.CrosEcDev.detect():
+    if os.name == "nt":
+        # detect only works on Linux for now
+        return DeviceTypes.LPC
+    elif dev and dev.CrosEcDev.detect():
         return DeviceTypes.LinuxDev
-    elif lpc.CrosEcLpc.detect():
+    elif lpc and lpc.CrosEcLpc.detect():
         return DeviceTypes.LPC
     else:
         raise OSError("Could not auto detect device, check you have the required permissions, or specify manually.")

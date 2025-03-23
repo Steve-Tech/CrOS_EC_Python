@@ -42,6 +42,7 @@ class CrosEcLpc(CrosEcClass):
         """
         Checks for known CrOS EC memory map addresses in `/proc/ioports`.
         """
+        # TODO: Windows support (Get-CimInstance -Class Win32_PortResource)
         with open("/proc/ioports", "r") as f:
             for line in f:
                 if line.lstrip()[:4] in (
