@@ -1,6 +1,6 @@
 [project]
 name = "cros_ec_python"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Steve-Tech" }
 ]
@@ -11,10 +11,11 @@ classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
     "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
     "Topic :: System :: Hardware",
 ]
+license = "GPL-2.0-or-later"
 
 [project.optional-dependencies]
 docs = ["pdoc", "portio"]
