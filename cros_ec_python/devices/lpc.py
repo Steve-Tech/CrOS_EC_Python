@@ -52,12 +52,14 @@ class CrosEcLpc(CrosEcClass):
                     return True
 
     @staticmethod
-    def find_address(*addresses, portio: PortIO = PortIO()) -> int | None:
+    def find_address(*addresses, portio: PortIO | None = None) -> int | None:
         """
         Find the EC memory map address.
         :param addresses: A list of addresses to check.
         :return: The address of the EC memory map, or None if not found.
         """
+        if portio is None:
+            portio = PortIO()
         for a in addresses:
             if res := portio.ioperm(a, EC_MEMMAP_SIZE, True):
                 if res == errno.EPERM:
