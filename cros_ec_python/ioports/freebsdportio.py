@@ -1,35 +1,77 @@
 """
-This file provides a way to interact with the `/dev/port` device file
-as an alternative to the [portio](https://pypi.org/project/portio/) library.
-
-The speed is pretty much on par with the `portio` library, so there is no
-real downside to using this method.
+This file provides a way to interact with the `/dev/io` device file on
+FreeBSD.
 """
 
-from typing import IO
+from typing import Final, IO
+from fcntl import ioctl
+import struct
 
 from .baseportio import PortIOClass
 
+IODEV_PIO_READ: Final = 0
+IODEV_PIO_WRITE: Final = 1
 
-class DevPortIO(PortIOClass):
+
+def _IOC(inout: int, group: str, num: int, length: int):
     """
-    A class to interact with the `/dev/port` device file on Linux.
+    Create an ioctl command number.
+    Based on the FreeBSD kernels sys/sys/ioccom.h.
+    """
+    IOCPARM_SHIFT: Final = 13  # number of bits for ioctl size
+    IOCPARM_MASK: Final = ((1 << IOCPARM_SHIFT) - 1)  # parameter length mask
+
+    return (((inout) | (((length) & IOCPARM_MASK) << 16) | (ord(group) << 8) | (num)))
+
+
+def _IOWR(group: str, num: int, length: int):
+    """
+    Create an ioctl command number for read/write commands.
+    Based on the FreeBSD kernels sys/sys/ioccom.h.
+    """
+    IOC_VOID: Final = 0x20000000  # no parameters
+    IOC_OUT: Final = 0x40000000  # copy out parameters
+    IOC_IN: Final = 0x80000000  # copy in parameters
+    IOC_INOUT: Final = (IOC_IN|IOC_OUT)  # copy parameters in and out
+    IOC_DIRMASK: Final = (IOC_VOID|IOC_OUT|IOC_IN)  # mask for IN/OUT/VOID
+    return _IOC(IOC_INOUT, group, num, length)
+
+
+def IODEV_PIO():
+    """
+    Create an ioctl command number for the `/dev/io` device file.
     """
 
-    _dev_port: IO | None = None
+    # struct iodev_pio_req {
+    # 	u_int access;
+    # 	u_int port;
+    # 	u_int width;
+    # 	u_int val;
+    # };
+
+    length = struct.calcsize("IIII")
+    return _IOWR("I", 0, length)
+
+
+class FreeBsdPortIO(PortIOClass):
+    """
+    A class to interact with the `/dev/io` device file on FreeBSD.
+    """
+
+    _dev_io: IO | None = None
 
     def __init__(self):
         """
         Initialize the `/dev/port` device file.
         """
-        self._dev_port = open("/dev/port", "r+b", buffering=0)
+        self._dev_io = open("/dev/io", "wb", buffering=0)
 
     def __del__(self):
         """
         Close the `/dev/port` device file.
         """
-        if self._dev_port:
-            self._dev_port.close()
+        if self._dev_io:
+            self._dev_io.close()
 
     def out_bytes(self, data: bytes, port: int) -> None:
         """
@@ -37,8 +79,10 @@ class DevPortIO(PortIOClass):
         :param data: Data to write.
         :param port: Port to write to.
         """
-        self._dev_port.seek(port)
-        self._dev_port.write(data)
+        iodev_pio_req = struct.pack(
+            "IIII", IODEV_PIO_WRITE, port, len(data), int.from_bytes(data, "little")
+        )
+        ioctl(self._dev_io, IODEV_PIO(), iodev_pio_req)
 
     def outb(self, data: int, port: int) -> None:
         """
@@ -68,11 +112,11 @@ class DevPortIO(PortIOClass):
         """
         Read data from the specified port.
         :param port: Port to read from.
-        :param num: Number of bytes to read.
+        :param num: Number of bytes to read (1 - 4).
         :return: Data read.
         """
-        self._dev_port.seek(port)
-        return self._dev_port.read(num)
+        iodev_pio_req = struct.pack("IIII", IODEV_PIO_READ, port, num, 0)
+        return ioctl(self._dev_io, IODEV_PIO(), iodev_pio_req)[struct.calcsize("III") :]
 
     def inb(self, port: int) -> int:
         """
@@ -100,12 +144,12 @@ class DevPortIO(PortIOClass):
 
     def ioperm(self, port: int, num: int, turn_on: bool) -> None:
         """
-        `ioperm` stub function. It's not required for `/dev/port`.
+        `ioperm` stub function. The iopl will already be raised from opening `/dev/io` and is not required.
         """
         pass
 
     def iopl(self, level: int) -> None:
         """
-        `iopl` stub function. It's not required for `/dev/port`.
+        `iopl` stub function. The iopl will already be raised from opening `/dev/io` and is not required.
         """
         pass

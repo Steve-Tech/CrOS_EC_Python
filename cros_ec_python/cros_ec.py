@@ -5,12 +5,12 @@ For example, you can use `get_cros_ec()` instead of manually picking between
 `cros_ec_python.devices.lpc.CrosEcLpc` and `cros_ec_python.devices.dev.CrosEcDev`.
 """
 
-import os
+import sys
 
 from .constants.COMMON import *
 from .baseclass import CrosEcClass
 from .devices import lpc
-if os.name == "posix":
+if sys.platform == "linux":
     from .devices import dev
 else:
     dev = None
@@ -36,10 +36,7 @@ def pick_device() -> DeviceTypes:
     * `DeviceTypes.LinuxDev` (see `cros_ec_python.devices.dev.CrosEcDev.detect()`)
     * `DeviceTypes.LPC` (see `cros_ec_python.devices.lpc.CrosEcLpc.detect()`)
     """
-    if os.name == "nt":
-        # detect only works on Linux for now
-        return DeviceTypes.LPC
-    elif dev and dev.CrosEcDev.detect():
+    if dev and dev.CrosEcDev.detect():
         return DeviceTypes.LinuxDev
     elif lpc and lpc.CrosEcLpc.detect():
         return DeviceTypes.LPC

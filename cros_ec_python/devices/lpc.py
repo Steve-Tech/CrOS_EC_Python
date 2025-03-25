@@ -1,6 +1,8 @@
 import struct
 import warnings
 import errno
+import sys
+
 from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
 from ..constants.LPC import *
@@ -42,14 +44,23 @@ class CrosEcLpc(CrosEcClass):
         """
         Checks for known CrOS EC memory map addresses in `/proc/ioports`.
         """
-        # TODO: Windows support (Get-CimInstance -Class Win32_PortResource)
-        with open("/proc/ioports", "r") as f:
-            for line in f:
-                if line.lstrip()[:4] in (
-                    format(EC_LPC_ADDR_MEMMAP, "04x"),
-                    format(EC_LPC_ADDR_MEMMAP_FWAMD, "04x"),
-                ):
-                    return True
+        if sys.platform == "linux":
+            try:
+                with open("/proc/ioports", "r") as f:
+                    for line in f:
+                        if line.lstrip()[:4] in (
+                            format(EC_LPC_ADDR_MEMMAP, "04x"),
+                            format(EC_LPC_ADDR_MEMMAP_FWAMD, "04x"),
+                        ):
+                            return True
+                return False
+            except FileNotFoundError:
+                pass
+
+        # Look for the memmap as a last resort
+        return bool(
+            CrosEcLpc.find_address(EC_LPC_ADDR_MEMMAP, EC_LPC_ADDR_MEMMAP_FWAMD)
+        )
 
     @staticmethod
     def find_address(*addresses, portio: PortIO | None = None) -> int | None:

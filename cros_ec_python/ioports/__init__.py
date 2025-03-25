@@ -29,6 +29,10 @@ portio = DevPortIO()
 # Manually pick WinRing0 (Windows)
 from cros_ec_python.ioports.winportio import WinPortIO
 portio = WinPortIO()
+
+# Manually pick `/dev/io` (FreeBSD)
+from cros_ec_python.ioports.freebsdportio import FreeBsdPortIO
+portio = FreeBsdPortIO()
 ```
 
 **Reading from a port**
