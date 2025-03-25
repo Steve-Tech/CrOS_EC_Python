@@ -55,15 +55,17 @@ See `cros_ec_python.ioports.baseportio.PortIOClass` for the full list of common 
 Some classes may have additional methods, such as `cros_ec_python.ioports.x86portio.IoPortIo`.
 """
 
-import os
+import sys
 
-if os.name == "posix":
+if sys.platform == "linux":
     try:
         from .x86portio import IoPortIo as PortIO
     except ImportError:
         from .devportio import DevPortIO as PortIO
-elif os.name == "nt":
+elif sys.platform == "win32":
     from .winportio import WinPortIO as PortIO
+elif sys.platform.startswith("freebsd"):
+    from .freebsdportio import FreeBsdPortIO as PortIO
 else:
     raise Exception("Unsupported OS")
 
