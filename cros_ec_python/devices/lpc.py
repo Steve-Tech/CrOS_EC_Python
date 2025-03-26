@@ -56,6 +56,18 @@ class CrosEcLpc(CrosEcClass):
                 return False
             except FileNotFoundError:
                 pass
+        elif sys.platform == "win32":
+            try:
+                from wmi import WMI
+
+                c = WMI()
+                for resource in c.Win32_PortResource():
+                    start_address = int(resource.StartingAddress)
+                    if start_address in (EC_LPC_ADDR_MEMMAP, EC_LPC_ADDR_MEMMAP_FWAMD):
+                        return True
+                return False
+            except ImportError:
+                pass
 
         # Look for the memmap as a last resort
         return bool(
