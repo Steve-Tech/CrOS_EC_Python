@@ -9,7 +9,7 @@ import sys
 
 from .constants.COMMON import *
 from .baseclass import CrosEcClass
-from .devices import lpc
+from .devices import lpc, pawnio
 if sys.platform == "linux":
     from .devices import dev
 else:
@@ -25,7 +25,9 @@ class DeviceTypes(Enum):
     This is the Linux device interface, which uses the `/dev/cros_ec` device file.
     *Recommended if you have the `cros_ec_dev` kernel module loaded.*
     """
-    LPC = 1
+    PawnIO = 1
+    "This is the Windows PawnIO interface, which is recommended on Windows Systems."
+    LPC = 2
     "This manually talks to the EC over the LPC interface, using the ioports."
 
 
@@ -38,6 +40,8 @@ def pick_device() -> DeviceTypes:
     """
     if dev and dev.CrosEcDev.detect():
         return DeviceTypes.LinuxDev
+    elif pawnio and pawnio.CrosEcPawnIO.detect():
+        return DeviceTypes.PawnIO
     elif lpc and lpc.CrosEcLpc.detect():
         return DeviceTypes.LPC
     else:
@@ -58,6 +62,8 @@ def get_cros_ec(dev_type: DeviceTypes | None = None, **kwargs) -> CrosEcClass:
     match dev_type:
         case DeviceTypes.LinuxDev:
             return dev.CrosEcDev(**kwargs)
+        case DeviceTypes.PawnIO:
+            return pawnio.CrosEcPawnIO(**kwargs)
         case DeviceTypes.LPC:
             return lpc.CrosEcLpc(**kwargs)
         case _:

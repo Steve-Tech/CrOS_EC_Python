@@ -82,7 +82,7 @@ def get_build_info(ec: CrosEcClass) -> str:
     :param ec: The CrOS_EC object.
     :return: The build info as a string.
     """
-    resp = ec.command(0, EC_CMD_GET_BUILD_INFO, 0, 0xfc, warn=False)
+    resp = ec.command(0, EC_CMD_GET_BUILD_INFO, 0, 0xf8, warn=False)
     return resp.decode("utf-8").rstrip("\x00")
 
 
