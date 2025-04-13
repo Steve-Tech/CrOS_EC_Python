@@ -116,8 +116,8 @@ class CrosEcLpc(CrosEcClass):
 
         # Request I/O permissions
         if (
-            (res := self.portio.ioperm(EC_LPC_ADDR_HOST_DATA, EC_MEMMAP_SIZE, True))
-            or (res := self.portio.ioperm(EC_LPC_ADDR_HOST_CMD, EC_MEMMAP_SIZE, True))
+            (res := self.portio.ioperm(EC_LPC_ADDR_HOST_DATA, 1, True))
+            or (res := self.portio.ioperm(EC_LPC_ADDR_HOST_CMD, 1, True))
             or (
                 res := self.portio.ioperm(
                     EC_LPC_ADDR_HOST_PACKET, EC_LPC_HOST_PACKET_SIZE, True
@@ -283,6 +283,7 @@ class CrosEcLpc(CrosEcClass):
         for i in range(len(request)):
             csum += request[i]
 
+        # Write checksum field so the entire packet sums to 0
         request[1] = (-csum) & 0xFF
 
         # Copy header
@@ -301,7 +302,7 @@ class CrosEcLpc(CrosEcClass):
 
         # Read back response and start checksum
         csum = 0
-        data_out = bytearray(1 + 1 + 2 + 2 + 2)
+        data_out = bytearray(struct.calcsize("BBHHH"))
         for i in range(len(data_out)):
             data_out[i] = self.portio.inb(EC_LPC_ADDR_HOST_PACKET + i)
             csum += data_out[i]

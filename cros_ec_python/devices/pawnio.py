@@ -1,6 +1,7 @@
 import struct
 import warnings
 import ctypes
+import os
 from ctypes import wintypes
 from ctypes import util as ctypes_util
 
@@ -103,8 +104,12 @@ class CrosEcPawnIO(CrosEcClass):
 
     @staticmethod
     def detect() -> bool:
-        # TODO
-        return True
+        """
+        Detect if the PawnIO driver is installed.
+        """
+        return bool(ctypes_util.find_library("PawnIOLib.dll")) or os.path.exists(
+            "C:\\Program Files\\PawnIO\\PawnIOLib.dll"
+        )
 
     def ec_init(self) -> None:
         self._pawnio_open()
