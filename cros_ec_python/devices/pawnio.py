@@ -2,6 +2,7 @@ import struct
 import warnings
 import ctypes
 import os
+import sys
 from ctypes import wintypes
 from ctypes import util as ctypes_util
 
@@ -22,7 +23,10 @@ class CrosEcPawnIO(CrosEcClass):
         :param bin: Path to the binary to load. If None, will use the default path.
         """
 
-        self.bin = bin or "LpcCrOSEC.bin"
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            self.bin = bin or os.path.join(sys._MEIPASS, "LpcCrOSEC.bin")
+        else:
+            self.bin = bin or "LpcCrOSEC.bin"
 
         if dll or (dll := ctypes_util.find_library("PawnIOLib.dll")):
             self.pawniolib = ctypes.OleDLL(dll)
