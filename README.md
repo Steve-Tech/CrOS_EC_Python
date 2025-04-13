@@ -10,7 +10,10 @@ As well as a higher-level abstracted interface for easy access to some of the mo
 
 ### Linux
 
-For a basic installation with full Linux Device support, run: 
+> [!NOTE]
+> Don't forget to read the [permissions](#permissions) section below.
+
+For a basic installation with full Linux Device support, run:
 
 ```bash
 pip install cros-ec-python
@@ -18,12 +21,12 @@ pip install cros-ec-python
 
 Some interfaces require additional dependencies, for example the LPC interface performs best with the `portio` package:
 
-
 ```bash
 pip install cros-ec-python[lpc]
 ```
 
 #### Permissions
+
 Since we're playing around with actual hardware, we're going to need some pretty high permissions.
 
 The recommended way is to copy [`60-cros_ec_python.rules`](60-cros_ec_python.rules) to `/etc/udev/rules.d/` and run:
@@ -35,28 +38,53 @@ sudo udevadm trigger
 
 This will give the current user access to both `/dev/cros_ec` for the Linux Device interface, and the IO ports for the LPC interface.
 
+
 ##### Linux Device Interface
+
 This library requires write permission to `/dev/cros_ec` when using the Linux Device interface,
 which is usually only accessible by root. You can either run your script as root, add a udev rule,
 or just manually change the permissions. Read permission is not needed, only write.
 
 ##### LPC Bus Interface
+
 This library requires access to IO ports using the `CAP_SYS_RAWIO` capability.
 It's easiest just to run your script as root.
 
 ### Windows
 
-The Windows version requires WinRing0 to access IO ports. You can find signed versions online, that do not require disabling driver signature enforcement.
-You will need to copy `WinRing0x64.dll` and `WinRing0x64.sys` to either the same
-directory as `python.exe`, or to `C:\Windows\System32`.
+> [!NOTE]
+> Loading a driver will likely require administrator permissions, so you may need to run your script as an administrator.
 
-Then you can install the package with:
+The Windows version supports 2 different drivers to access the EC:
+
+- `PawnIO` which is a fairly new scriptable kernel driver, the official signed version can be downloaded [here](https://pawnio.eu/).
+- `WinRing0` which while still signed, it has been abandoned and is listed on the Microsoft Vulnerable Driver Blocklist.
+
+Install one of the drivers, and then install the package using pip:
 
 ```bash
 pip install cros-ec-python
 ```
 
-WinRing0 will likely require administrator permissions to access IO ports, so you may need to run your script as an administrator.
+#### PawnIO
+
+> [!TIP]
+> PawnIO is [designed to be a secure alternative to WinRing0](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/issues/984#issuecomment-1585591691), and is the recommended driver for Windows.
+
+[PawnIO](https://pawnio.eu/) can be installed using the installer from the website.
+PawnIO is signed and does not require disabling driver signature enforcement.
+
+You will also need to download the [`LpcCrOSEC`](https://github.com/namazso/PawnIO.Modules/pull/3) module, and copy it to your working directory.
+
+#### WinRing0
+
+> [!WARNING]
+> WinRing0 is listed on the Microsoft Vulnerable Driver Blocklist, making it frequently flagged by antivirus and anti cheat software. Download links are not provided, use at your own risk.
+
+Alternatively, WinRing0 can be used to access the IO ports required for communication to the EC. You can find signed versions online, that do not require disabling driver signature enforcement.
+
+You will need to copy `WinRing0x64.dll` and `WinRing0x64.sys` to either the same
+directory as `python.exe`, or to `C:\Windows\System32`.
 
 ## Documentation
 
@@ -67,14 +95,15 @@ and every function has usage in the [`tests`](https://github.com/Steve-Tech/CrOS
 
 ### Running Tests
 
+> [!CAUTION]
+> This will test against your EC, nothing is mocked.
+
 This package uses the built-in `unittest` module for testing. To run the tests, simply run:
 
 ```bash
 cd tests
 python -m unittest
 ```
-
-***Note: This will test against your EC, nothing is mocked.***
 
 ### Generating Documentation
 
@@ -93,6 +122,7 @@ pdoc cros_ec_python
 ### Supported Interfaces
 
 - [x] Linux Device (Requires the `cros_ec_dev` kernel module)
+- [x] Windows [PawnIO](https://pawnio.eu/) using [LpcCrOSEC](https://github.com/namazso/PawnIO.Modules/pull/3)
 - [x] LPC Bus Interface (Soft-requires the [`portio` package](https://pypi.org/project/portio/))
 - [ ] MEC LPC Interface
 - [ ] I2C Interface
@@ -100,8 +130,9 @@ pdoc cros_ec_python
 
 ### Supported Commands
 
-The goal of this project is *not* to abstract away 100% of the CrOS EC commands, but to abstract the ones that may be useful.
-If a command is not abstracted it can still be used by calling the `ec.command()` method instead.
+> [!NOTE]
+> The goal of this project is *not* to abstract away 100% of the CrOS EC commands, but to abstract the ones that may be useful.
+> If a command is not abstracted it can still be used by calling the `ec.command()` method instead.
 
 Here's a list of all known CrOS EC commands, and whether they are abstracted in this library.
 The implemented commands are split up into modules for maintainability reasons.
@@ -506,4 +537,3 @@ The implemented commands are split up into modules for maintainability reasons.
 - [x] `EC_CMD_BATTERY_EXTENDER` (`0x3E24`)
 
 </details>
-
