@@ -11,10 +11,12 @@ from ..constants.MEMMAP import EC_MEMMAP_SIZE
 from ..commands.general import EC_CMD_READ_MEMMAP
 from ..exceptions import ECError
 
+__all__ = ["CrosEcDev"]
+
 CROS_EC_IOC_MAGIC: Final = 0xEC
 
 
-def _IOC(dir: int, type: int, nr: int, size: int):
+def IOC(dir: int, type: int, nr: int, size: int):
     """
     Create an ioctl command number.
     Based on the Linux kernels include/uapi/asm-generic/ioctl.h.
@@ -28,7 +30,7 @@ def _IOC(dir: int, type: int, nr: int, size: int):
     return dir << dir_shift | size << size_shift | type << type_shift | nr << nr_shift
 
 
-def _IORW(type: int, nr: int, size: int):
+def IORW(type: int, nr: int, size: int):
     """
     Create an ioctl command number for read/write commands.
     Based on the Linux kernels include/uapi/asm-generic/ioctl.h.
@@ -36,7 +38,7 @@ def _IORW(type: int, nr: int, size: int):
     none = 0
     write = 1
     read = 2
-    return _IOC((read | write), type, nr, size)
+    return IOC((read | write), type, nr, size)
 
 
 class CrosEcDev(CrosEcClass):
@@ -99,7 +101,7 @@ class CrosEcDev(CrosEcClass):
         buf = bytearray(cmd + bytes(max(outsize, insize)))
         buf[len(cmd): len(cmd) + outsize] = data
 
-        CROS_EC_DEV_IOCXCMD = _IORW(CROS_EC_IOC_MAGIC, 0, len(cmd))
+        CROS_EC_DEV_IOCXCMD = IORW(CROS_EC_IOC_MAGIC, 0, len(cmd))
         result = ioctl(self.fd, CROS_EC_DEV_IOCXCMD, buf)
 
         if result < 0:
@@ -125,7 +127,7 @@ class CrosEcDev(CrosEcClass):
         if self.memmap_ioctl:
             data = struct.pack("<II", offset, num_bytes)
             buf = bytearray(data + bytes(num_bytes))
-            CROS_EC_DEV_IOCRDMEM = _IORW(
+            CROS_EC_DEV_IOCRDMEM = IORW(
                 CROS_EC_IOC_MAGIC, 1, len(data) + EC_MEMMAP_SIZE + 1
             )
             try:

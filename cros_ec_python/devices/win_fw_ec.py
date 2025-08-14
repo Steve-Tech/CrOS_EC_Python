@@ -2,7 +2,13 @@ from typing import Final
 import warnings
 import os
 import ctypes
-from ctypes import wintypes, windll
+from ctypes import wintypes
+
+# Workaround for pdoc failing on Linux
+if os.name == 'nt':
+    from ctypes import windll
+
+__all__ = ["WinFrameworkEc"]
 
 from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
