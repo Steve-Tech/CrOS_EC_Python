@@ -5,6 +5,11 @@ import os
 import sys
 from ctypes import wintypes
 from ctypes import util as ctypes_util
+from typing import Iterable
+
+# Workaround for pdoc failing on Linux
+if os.name == 'nt':
+    import winreg
 
 from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
@@ -28,11 +33,9 @@ class CrosEcPawnIO(CrosEcClass):
         else:
             self.bin = bin or "LpcCrOSEC.bin"
 
-        if dll or (dll := ctypes_util.find_library("PawnIOLib.dll")):
-            self.pawniolib = ctypes.OleDLL(dll)
-        else:
-            # Let this raise an error if we can't find it
-            self.pawniolib = ctypes.OleDLL("C:\\Program Files\\PawnIO\\PawnIOLib.dll")
+        if not dll:
+            dll = self._get_location()
+        self.pawniolib = ctypes.OleDLL(dll)
 
         self.pawniolib.pawnio_version.argtypes = [ctypes.POINTER(wintypes.ULONG)]
         self.pawniolib.pawnio_open.argtypes = [ctypes.POINTER(wintypes.HANDLE)]
@@ -81,8 +84,8 @@ class CrosEcPawnIO(CrosEcClass):
     def _pawnio_execute(
         self,
         function: str,
-        in_data: bytes,
-        out_size: bytes,
+        in_data: Iterable,
+        out_size: int,
         in_size: int | None = None,
     ) -> tuple[int | ctypes.Array]:
         function_bytes = function.encode("utf-8")
@@ -107,13 +110,28 @@ class CrosEcPawnIO(CrosEcClass):
         self.pawniolib.pawnio_close(self.handle)
 
     @staticmethod
+    def _get_location() -> str | None:
+        """
+        Get the location of the PawnIO driver.
+        """
+        try:
+            with winreg.OpenKey(
+                winreg.HKEY_LOCAL_MACHINE,
+                r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO"
+            ) as key:
+                return winreg.QueryValueEx(key, "InstallLocation")[0] + r"\\PawnIOLib.dll"
+        except FileNotFoundError:
+            fallback = os.environ.get("ProgramFiles", r"C:\Program Files") + r"\PawnIO\PawnIOLib.dll"
+            if os.path.exists(fallback):
+                return fallback
+            return None
+
+    @staticmethod
     def detect() -> bool:
         """
         Detect if the PawnIO driver is installed.
         """
-        return bool(ctypes_util.find_library("PawnIOLib.dll")) or os.path.exists(
-            "C:\\Program Files\\PawnIO\\PawnIOLib.dll"
-        )
+        return CrosEcPawnIO._get_location() is not None
 
     def ec_init(self) -> None:
         self._pawnio_open()

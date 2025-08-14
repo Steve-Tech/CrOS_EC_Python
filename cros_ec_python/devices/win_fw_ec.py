@@ -29,21 +29,21 @@ METHOD_BUFFERED: Final      = 0
 INVALID_HANDLE_VALUE: Final = -1
 
 
-def ctl_code(device_type, function, method, access) -> int:
-    return ((device_type) << 16) + ((access) << 14) + ((function) << 2) + method
+def CTL_CODE(device_type, function, method, access) -> int:
+    return (device_type << 16) | (access << 14) | (function << 2) | method
 
 
 CROSEC_CMD_MAX_REQUEST = 0x100
 
 FILE_DEVICE_CROS_EMBEDDED_CONTROLLER = 0x80EC
 
-IOCTL_CROSEC_XCMD = ctl_code(
+IOCTL_CROSEC_XCMD = CTL_CODE(
     FILE_DEVICE_CROS_EMBEDDED_CONTROLLER,
     0x801,
     METHOD_BUFFERED,
     FILE_READ_DATA | FILE_WRITE_DATA,
 )
-IOCTL_CROSEC_RDMEM = ctl_code(
+IOCTL_CROSEC_RDMEM = CTL_CODE(
     FILE_DEVICE_CROS_EMBEDDED_CONTROLLER,
     0x802,
     METHOD_BUFFERED,
@@ -51,7 +51,9 @@ IOCTL_CROSEC_RDMEM = ctl_code(
 )
 
 
-def CreateFileW(filename, access, mode, creation, flags) -> wintypes.HANDLE:
+def CreateFileW(
+    filename: str, access: int, mode: int, creation: int, flags: int
+) -> wintypes.HANDLE:
     knl32_CreateFileW = windll.kernel32.CreateFileW
     knl32_CreateFileW.argtypes = [
             wintypes.LPCWSTR, # lpFileName
@@ -69,7 +71,14 @@ def CreateFileW(filename, access, mode, creation, flags) -> wintypes.HANDLE:
     )
 
 
-def DeviceIoControl(devhandle, ioctl, inbuf, inbufsiz, outbuf, outbufsiz) -> bool:
+def DeviceIoControl(
+    handle: wintypes.HANDLE,
+    ioctl: int,
+    inbuf: ctypes.pointer,
+    insize: int,
+    outbuf: ctypes.pointer,
+    outsize: int,
+) -> bool:
     knl32_DeviceIoControl = windll.kernel32.DeviceIoControl
     knl32_DeviceIoControl.argtypes = [
         wintypes.HANDLE,  # hDevice
@@ -84,7 +93,7 @@ def DeviceIoControl(devhandle, ioctl, inbuf, inbufsiz, outbuf, outbufsiz) -> boo
     knl32_DeviceIoControl.restype = wintypes.BOOL
 
     status = knl32_DeviceIoControl(
-        devhandle, ioctl, inbuf, inbufsiz, outbuf, outbufsiz, None, None
+        handle, ioctl, inbuf, insize, outbuf, outsize, None, None
     )
 
     return bool(status)
