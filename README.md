@@ -55,8 +55,9 @@ It's easiest just to run your script as root.
 > [!NOTE]
 > Loading a driver will likely require administrator permissions, so you may need to run your script as an administrator.
 
-The Windows version supports 2 different drivers to access the EC:
+The Windows version supports 3 different drivers to access the EC:
 
+- The Framework EC driver which is provided in the driver bundles and requires a supported BIOS version. This driver does not require administrator and is the recommended way of using CrOS_EC_Python on supported devices.
 - `PawnIO` which is a fairly new scriptable kernel driver, the official signed version can be downloaded [here](https://pawnio.eu/).
 - `WinRing0` which while still signed, it has been abandoned and is listed on the Microsoft Vulnerable Driver Blocklist.
 
@@ -69,7 +70,7 @@ pip install cros-ec-python
 #### PawnIO
 
 > [!TIP]
-> PawnIO is [designed to be a secure alternative to WinRing0](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/issues/984#issuecomment-1585591691), and is the recommended driver for Windows.
+> PawnIO is [designed to be a secure alternative to WinRing0](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/issues/984#issuecomment-1585591691), and is recommended over WinRing0.
 
 [PawnIO](https://pawnio.eu/) can be installed using the installer from the website.
 PawnIO is signed and does not require disabling driver signature enforcement.
@@ -122,6 +123,7 @@ pdoc cros_ec_python
 ### Supported Interfaces
 
 - [x] Linux Device (Requires the `cros_ec_dev` kernel module)
+- [x] Windows Framework EC Driver
 - [x] Windows [PawnIO](https://pawnio.eu/) using [LpcCrOSEC](https://github.com/namazso/PawnIO.Modules/pull/3)
 - [x] LPC Bus Interface (Soft-requires the [`portio` package](https://pypi.org/project/portio/))
 - [ ] MEC LPC Interface

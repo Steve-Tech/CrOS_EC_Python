@@ -1,5 +1,11 @@
 import unittest
+import sys
 from cros_ec_python import get_cros_ec, ECError, general as ec_general
+
+if sys.platform == "win32":
+    from cros_ec_python.devices import win_fw_ec
+else:
+     win_fw_ec = None
 
 ec = get_cros_ec()
 
@@ -90,6 +96,10 @@ class TestTestProtocol(unittest.TestCase):
         with self.assertRaises(ECError):
             ec_general.test_protocol(ec, 1, 0, bytes())
 
+    @unittest.skipIf(
+        win_fw_ec is not None and isinstance(ec, win_fw_ec.WinFrameworkEc),
+        "not supported on Framework's Driver",
+    )
     def test_warning(self):
         with self.assertWarns(RuntimeWarning):
             length = 16

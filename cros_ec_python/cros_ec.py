@@ -9,12 +9,15 @@ import sys
 
 from .constants.COMMON import *
 from .baseclass import CrosEcClass
-from .devices import lpc, pawnio
+from .devices import lpc
 if sys.platform == "linux":
     from .devices import dev
 else:
     dev = None
-
+if sys.platform == "win32":
+    from .devices import pawnio, win_fw_ec
+else:
+    pawnio = win_fw_ec = None
 
 class DeviceTypes(Enum):
     """
@@ -25,9 +28,14 @@ class DeviceTypes(Enum):
     This is the Linux device interface, which uses the `/dev/cros_ec` device file.
     *Recommended if you have the `cros_ec_dev` kernel module loaded.*
     """
-    PawnIO = 1
+    WinFrameworkEC = 1
+    """
+    This is the Framework Windows driver interface.
+    *Recommended if you have a Framework laptop with a supported BIOS and driver.*
+    """
+    PawnIO = 2
     "This is the Windows PawnIO interface, which is recommended on Windows Systems."
-    LPC = 2
+    LPC = 3
     "This manually talks to the EC over the LPC interface, using the ioports."
 
 
@@ -40,6 +48,8 @@ def pick_device() -> DeviceTypes:
     """
     if dev and dev.CrosEcDev.detect():
         return DeviceTypes.LinuxDev
+    elif win_fw_ec and win_fw_ec.WinFrameworkEc.detect():
+        return DeviceTypes.WinFrameworkEC
     elif pawnio and pawnio.CrosEcPawnIO.detect():
         return DeviceTypes.PawnIO
     elif lpc and lpc.CrosEcLpc.detect():
@@ -62,6 +72,8 @@ def get_cros_ec(dev_type: DeviceTypes | None = None, **kwargs) -> CrosEcClass:
     match dev_type:
         case DeviceTypes.LinuxDev:
             return dev.CrosEcDev(**kwargs)
+        case DeviceTypes.WinFrameworkEC:
+            return win_fw_ec.WinFrameworkEc(**kwargs)
         case DeviceTypes.PawnIO:
             return pawnio.CrosEcPawnIO(**kwargs)
         case DeviceTypes.LPC:
