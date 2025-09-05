@@ -27,6 +27,3 @@ lpc = ["portio; sys_platform=='linux'", "wmi; sys_platform=='win32'"]
 Documentation = "https://steve-tech.github.io/CrOS_EC_Python/"
 Repository = "https://github.com/Steve-Tech/CrOS_EC_Python"
 Issues = "https://github.com/Steve-Tech/CrOS_EC_Python/issues"
-
-[tool.setuptools]
-packages = ["cros_ec_python"]
