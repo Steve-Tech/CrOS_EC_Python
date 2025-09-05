@@ -4,7 +4,6 @@ import ctypes
 import os
 import sys
 from ctypes import wintypes
-from ctypes import util as ctypes_util
 from typing import Iterable
 
 # Workaround for pdoc failing on Linux
@@ -23,7 +22,7 @@ class CrosEcPawnIO(CrosEcClass):
 
     def __init__(self, dll: str | None = None, bin: str | None = None):
         """
-        Initialise the EC using the Linux cros_ec device.
+        Initialise the EC using the PawnIO LpcCrOSEC driver.
         :param dll: Path to the DLL to use. If None, will use the default path.
         :param bin: Path to the binary to load. If None, will use the default path.
         """
@@ -90,8 +89,8 @@ class CrosEcPawnIO(CrosEcClass):
     ) -> tuple[int | ctypes.Array]:
         function_bytes = function.encode("utf-8")
         in_size = in_size if in_size is not None else len(in_data)
-        in_array = (ctypes.c_ulonglong * in_size)(*in_data)
-        out_array = (ctypes.c_ulonglong * out_size)()
+        in_array = (ctypes.c_uint64 * in_size)(*in_data)
+        out_array = (ctypes.c_uint64 * out_size)()
         return_size = ctypes.c_size_t()
 
         self.pawniolib.pawnio_execute(
@@ -163,19 +162,28 @@ class CrosEcPawnIO(CrosEcClass):
         :param warn: Whether to warn if the response size is not as expected. Default is True.
         :return: Incoming data from EC.
         """
-        # LpcCrOSEC returns the EC result too
-        pawn_insize = insize + 1
-        header = struct.pack("<HB", command, version)
+
+        pawn_in_data = [version, command, outsize, insize]
+        # Convert data to 64-bit cells
+        for i in range(0, len(data or ()), 8):
+            if i + 8 > len(data):
+                # If the data is not a multiple of 8, pad it with zeros
+                pawn_in_data.append(struct.unpack('<Q', data[i:i+8] + b'\x00' * (8 - len(data[i:i+8])))[0])
+            else:
+                pawn_in_data.append(struct.unpack('<Q', data[i:i+8])[0])
+
+        # Convert insize from bytes to 64bit cells, + 1 for the EC result
+        pawn_out_size = -(-insize//8) + 1
+
         size, res = self._pawnio_execute(
             "ioctl_ec_command",
-            header + (data or b""),
-            pawn_insize,
-            in_size=outsize + len(header),
+            pawn_in_data,
+            pawn_out_size
         )
 
-        if size != pawn_insize and warn:
+        if size != pawn_out_size and warn:
             warnings.warn(
-                f"Expected {pawn_insize} bytes, got {size} back from PawnIO",
+                f"Expected {pawn_out_size} bytes, got {size} back from PawnIO",
                 RuntimeWarning,
             )
 
@@ -188,12 +196,10 @@ class CrosEcPawnIO(CrosEcClass):
         # Otherwise it's the length
         if res[0] != insize and warn:
             warnings.warn(
-                f"Expected {pawn_insize} bytes, got {res[0]} back from EC",
+                f"Expected {pawn_out_size} bytes, got {res[0]} back from EC",
                 RuntimeWarning,
             )
-
-        # The pawn cells are 64bit but all the values should fit in 8 bits
-        return bytes(res[1:])
+        return bytes(res)[8:insize+8]
 
     def memmap(self, offset: Int32, num_bytes: Int32) -> bytes:
         """
@@ -203,10 +209,6 @@ class CrosEcPawnIO(CrosEcClass):
         :return: Bytes read from the EC.
         """
         size, res = self._pawnio_execute(
-            "ioctl_ec_readmem", offset.to_bytes(1), num_bytes
+            "ioctl_ec_readmem", (offset, num_bytes), -(-num_bytes//8)
         )
-
-        array = bytearray(size)
-        for i in range(size):
-            array[i] = res[i]
-        return bytes(array)
+        return bytes(res)[:num_bytes]

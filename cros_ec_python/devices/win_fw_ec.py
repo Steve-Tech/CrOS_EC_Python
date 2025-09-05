@@ -106,7 +106,7 @@ class WinFrameworkEc(CrosEcClass):
 
     def __init__(self, handle: wintypes.HANDLE | None = None):
         """
-        Initialise the EC using the Linux cros_ec device.
+        Initialise communication with the Framework EC driver.
         :param handle: Use a custom device handle, opens one by default.
         """
         if handle is None:
