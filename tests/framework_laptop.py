@@ -66,7 +66,7 @@ class TestGetChassisIntrusion(unittest.TestCase):
 
 class TestGetFpLedLevel(unittest.TestCase):
     def test_int(self):
-        resp = ec_fw.get_fp_led_level_int(ec)
+        resp = ec_fw.get_fp_led_percent(ec)
         print(type(self).__name__, "-", "Resp:", resp)
         self.assertIsInstance(resp, int)
 

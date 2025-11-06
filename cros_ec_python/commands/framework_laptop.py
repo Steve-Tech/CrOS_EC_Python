@@ -6,6 +6,8 @@ from typing import Final, Literal
 from enum import Enum
 import struct
 from datetime import timedelta
+
+from .. import exceptions as ec_exceptions
 from ..baseclass import CrosEcClass
 from ..constants.COMMON import *
 
@@ -128,6 +130,11 @@ class FpLedBrightnessLevel(Enum):
     FP_LED_BRIGHTNESS_LEVEL_HIGH = 0
     FP_LED_BRIGHTNESS_LEVEL_MEDIUM = 1
     FP_LED_BRIGHTNESS_LEVEL_LOW = 2
+    "Not supported on some models"
+    FP_LED_BRIGHTNESS_LEVEL_ULTRALOW = 3
+    "Not allowed to set to enum custom value"
+    FP_LED_BRIGHTNESS_LEVEL_CUSTOM = 0xFE
+    FP_LED_BRIGHTNESS_LEVEL_AUTO = 0xFF
 
 
 def set_fp_led_level(ec: CrosEcClass, level: FpLedBrightnessLevel | int) -> None:
@@ -142,32 +149,85 @@ def set_fp_led_level(ec: CrosEcClass, level: FpLedBrightnessLevel | int) -> None
     ec.command(0, EC_CMD_FP_LED_LEVEL_CONTROL, 2, 0, data)
 
 
-def get_fp_led_level_int(ec: CrosEcClass) -> UInt8:
+def set_fp_led_percent(ec: CrosEcClass, percentage: int) -> None:
     """
-    Get the raw fingerprint LED level.
+    Set the fingerprint LED brightness percentage.
+    This requires EC_CMD_FP_LED_LEVEL_CONTROL version 1 support.
     :param ec: The CrOS_EC object.
-    :return: The current fingerprint LED level.
+    :param percentage: The percentage to set the fingerprint LED to (0-100).
+    """
+    data = struct.pack("<Bx", percentage)
+    ec.command(1, EC_CMD_FP_LED_LEVEL_CONTROL, 2, 0, data)
+
+
+def get_fp_led_percent(ec: CrosEcClass, version: Literal[0, 1] = 0) -> UInt8:
+    """
+    Get the fingerprint LED brightness percentage.
+    :param ec: The CrOS_EC object.
+    :return: The current fingerprint LED brightness percentage (0-100).
     """
     data = struct.pack("<xB", 1)
-    resp = ec.command(0, EC_CMD_FP_LED_LEVEL_CONTROL, 2, 1, data)
-    return struct.unpack("<B", resp)[0]
+    match version:
+        case 0:
+            resp = ec.command(version, EC_CMD_FP_LED_LEVEL_CONTROL, 2, 1, data)
+            return struct.unpack("<B", resp)[0]
+        case 1:
+            resp = ec.command(version, EC_CMD_FP_LED_LEVEL_CONTROL, 2, 2, data)
+            return struct.unpack("<BB", resp)[0]
+        case _:
+            raise ValueError("Invalid version, must be 0 or 1")
 
 
-def get_fp_led_level(ec: CrosEcClass) -> FpLedBrightnessLevel:
+def get_fp_led_levels_v1(ec: CrosEcClass) -> dict[str, int]:
+    """
+    Get the fingerprint LED level and brightness percentage.
+    This requires EC_CMD_FP_LED_LEVEL_CONTROL version 1 support.
+    :param ec: The CrOS_EC object.
+    :return: A dictionary with the current fingerprint LED level and brightness percentage.
+    """
+    data = struct.pack("<xB", 1)
+    resp = ec.command(1, EC_CMD_FP_LED_LEVEL_CONTROL, 2, 2, data)
+    levels = struct.unpack("<BB", resp)[0]
+    return {
+        "level": levels[0],
+        "percentage": levels[1],
+    }
+
+
+def get_fp_led_level(ec: CrosEcClass, version: Literal[0, 1] | None = None) -> FpLedBrightnessLevel:
     """
     Get the fingerprint LED level.
     :param ec: The CrOS_EC object.
     :return: The current fingerprint LED level.
     """
-    match level := get_fp_led_level_int(ec):
-        case 55:
-            return FpLedBrightnessLevel.FP_LED_BRIGHTNESS_LEVEL_HIGH
-        case 40:
-            return FpLedBrightnessLevel.FP_LED_BRIGHTNESS_LEVEL_MEDIUM
-        case 15:
-            return FpLedBrightnessLevel.FP_LED_BRIGHTNESS_LEVEL_LOW
+    match version:
+        case 0:
+            match level := get_fp_led_percent(ec, 0):
+                case 55:
+                    return FpLedBrightnessLevel.FP_LED_BRIGHTNESS_LEVEL_HIGH
+                case 40:
+                    return FpLedBrightnessLevel.FP_LED_BRIGHTNESS_LEVEL_MEDIUM
+                # case 28:
+                #     return FpLedBrightnessLevel.FP_LED_BRIGHTNESS_LEVEL_MEDIUMLOW
+                case 15:
+                    return FpLedBrightnessLevel.FP_LED_BRIGHTNESS_LEVEL_LOW
+                case 8:
+                    return FpLedBrightnessLevel.FP_LED_BRIGHTNESS_LEVEL_ULTRALOW
+                case _:
+                    return FpLedBrightnessLevel.FP_LED_BRIGHTNESS_LEVEL_CUSTOM
+        case 1:
+            level = get_fp_led_percent(ec, 1)
+            return FpLedBrightnessLevel(level)
+        case None:
+            try:
+                return get_fp_led_level(ec, 1)
+            except ec_exceptions.ECError as e:
+                if e.ec_status == ec_exceptions.EcStatus.EC_RES_INVALID_VERSION:
+                    return get_fp_led_level(ec, 0)
+                else:
+                    raise e
         case _:
-            raise ValueError(f"Invalid fingerprint LED level ({level})")
+            raise ValueError("Invalid version, must be 0 or 1")
 
 
 EC_CMD_CHASSIS_OPEN_CHECK: Final = 0x3E0F
