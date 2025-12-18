@@ -36,9 +36,15 @@ def thermal_get_thresholds(
     :param adjust: The adjustment to apply to the temperature. Default is -273 to convert from Kelvin to Celsius.
     :return: A list of tuples containing the (warn, high, halt) thresholds.
     """
-    data = struct.pack("<B", sensor_num)
+    data = struct.pack("<I", sensor_num)
     thresh_count: Final = EcTempThresholds.EC_TEMP_THRESH_COUNT.value
-    resp = ec.command(1, EC_CMD_THERMAL_GET_THRESHOLD, 1, 4*thresh_count + 4*thresh_count + 4 + 4, data)
+    resp = ec.command(
+        1,
+        EC_CMD_THERMAL_GET_THRESHOLD,
+        4,
+        4 * thresh_count + 4 * thresh_count + 4 + 4,
+        data,
+    )
     config = struct.unpack(f"<{thresh_count}I{thresh_count}III", resp)
     return {
         "temp_host": [(i + adjust) for i in config[0:thresh_count]],
@@ -48,6 +54,31 @@ def thermal_get_thresholds(
         "temp_fan_off": config[thresh_count * 2] + adjust,
         "temp_fan_max": config[thresh_count * 2 + 1] + adjust,
     }
+
+
+def thermal_set_thresholds(
+    ec: CrosEcClass,
+    sensor_num: int,
+    config: dict[str, list[int | float] | int | float],
+    adjust: int | float = 273,
+) -> None:
+    """
+    Set the temperature thresholds for a given sensor.
+    :param ec: The CrOS_EC object.
+    :param sensor_num: The sensor number.
+    :param config: A dictionary containing the threshold configuration.
+    :param adjust: The adjustment to apply to the temperature. Default is 273 to convert from Celsius to Kelvin.
+    """
+    thresh_count: Final = EcTempThresholds.EC_TEMP_THRESH_COUNT.value
+    data = struct.pack(
+        f"<I{thresh_count}I{thresh_count}III",
+        sensor_num,
+        *[int(i + adjust) for i in config["temp_host"]],
+        *[int(i + adjust) for i in config["temp_host_release"]],
+        int(config["temp_fan_off"] + adjust),
+        int(config["temp_fan_max"] + adjust),
+    )
+    ec.command(1, EC_CMD_THERMAL_SET_THRESHOLD, len(data), 0, data)
 
 
 EC_CMD_THERMAL_AUTO_FAN_CTRL: Final = 0x0052
