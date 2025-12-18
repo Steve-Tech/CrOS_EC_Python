@@ -152,6 +152,18 @@ def get_cmd_versions(ec: CrosEcClass, cmd: UInt8 | UInt16, version: Literal[0, 1
         # Otherwise, raise the exception
         raise e
 
+def check_cmd_version(ec: CrosEcClass, cmd: UInt8 | UInt16, version: int) -> bool:
+    """
+    Check if a command supports a specific version.
+    :param ec: The CrOS_EC object.
+    :param cmd: The command to check.
+    :param version: The version to check for.
+    :return: True if the command supports the version, False otherwise.
+    """
+    supported_versions = get_cmd_versions(ec, cmd)
+    if supported_versions is None:
+        return False
+    return (supported_versions & (1 << version)) != 0
 
 EC_CMD_GET_COMMS_STATUS: Final = 0x0009
 
