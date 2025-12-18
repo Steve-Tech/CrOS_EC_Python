@@ -3,6 +3,11 @@ from cros_ec_python import get_cros_ec, thermal as ec_thermal
 
 ec = get_cros_ec()
 
+class TestGetThresholds(unittest.TestCase):
+    def test(self):
+        resp = ec_thermal.thermal_get_thresholds(ec, 0)
+        print(type(self).__name__, "-", "Resp:", resp)
+        self.assertIsInstance(resp, dict)
 
 class TestAutoFanControl(unittest.TestCase):
     def test_version0(self):

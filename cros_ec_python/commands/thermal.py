@@ -17,6 +17,39 @@ from .memmap import get_temps
 EC_CMD_THERMAL_SET_THRESHOLD: Final = 0x0050
 EC_CMD_THERMAL_GET_THRESHOLD: Final = 0x0051
 
+
+class EcTempThresholds(Enum):
+    EC_TEMP_THRESH_WARN = 0
+    EC_TEMP_THRESH_HIGH = auto()
+    EC_TEMP_THRESH_HALT = auto()
+
+    EC_TEMP_THRESH_COUNT = auto()
+
+
+def thermal_get_thresholds(
+    ec: CrosEcClass, sensor_num: int, adjust: int | float = -273
+) -> dict[str, list[int | float] | int | float]:
+    """
+    Get the temperature thresholds for a given sensor.
+    :param ec: The CrOS_EC object.
+    :param sensor_num: The sensor number.
+    :param adjust: The adjustment to apply to the temperature. Default is -273 to convert from Kelvin to Celsius.
+    :return: A list of tuples containing the (warn, high, halt) thresholds.
+    """
+    data = struct.pack("<B", sensor_num)
+    thresh_count: Final = EcTempThresholds.EC_TEMP_THRESH_COUNT.value
+    resp = ec.command(1, EC_CMD_THERMAL_GET_THRESHOLD, 1, 4*thresh_count + 4*thresh_count + 4 + 4, data)
+    config = struct.unpack(f"<{thresh_count}I{thresh_count}III", resp)
+    return {
+        "temp_host": [(i + adjust) for i in config[0:thresh_count]],
+        "temp_host_release": [
+            (i + adjust) for i in config[thresh_count : thresh_count * 2]
+        ],
+        "temp_fan_off": config[thresh_count * 2] + adjust,
+        "temp_fan_max": config[thresh_count * 2 + 1] + adjust,
+    }
+
+
 EC_CMD_THERMAL_AUTO_FAN_CTRL: Final = 0x0052
 
 
@@ -75,4 +108,3 @@ def get_temp_sensors(ec: CrosEcClass) -> dict[str, tuple[int, EcTempSensorType]]
         info = temp_sensor_get_info(ec, i)
         ret[info["name"]] = (j, info["type"])
     return ret
-    
