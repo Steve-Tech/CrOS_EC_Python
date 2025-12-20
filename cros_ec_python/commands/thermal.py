@@ -1,10 +1,5 @@
 """
-Thermal engine commands. Note that there are two implementations.
-We'll reuse the command number, but the data and behavior is incompatible.
-
-Version 0 is what originally shipped on Link.
-
-Version 1 separates the CPU thermal limits from the fan control.
+Thermal engine commands.
 """
 
 from typing import Final
@@ -30,11 +25,11 @@ def thermal_get_thresholds(
     ec: CrosEcClass, sensor_num: int, adjust: int | float = -273
 ) -> dict[str, list[int | float] | int | float]:
     """
-    Get the temperature thresholds for a given sensor.
+    Get the temperature threshold configuration for a given sensor.
     :param ec: The CrOS_EC object.
     :param sensor_num: The sensor number.
     :param adjust: The adjustment to apply to the temperature. Default is -273 to convert from Kelvin to Celsius.
-    :return: A list of tuples containing the (warn, high, halt) thresholds.
+    :return: A dictionary containing the threshold configuration.
     """
     data = struct.pack("<I", sensor_num)
     thresh_count: Final = EcTempThresholds.EC_TEMP_THRESH_COUNT.value
