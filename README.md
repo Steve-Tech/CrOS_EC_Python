@@ -240,8 +240,8 @@ The implemented commands are split up into modules for maintainability reasons.
 
 **Thermal engine commands (`thermal`)**
 
-- [ ] `EC_CMD_THERMAL_SET_THRESHOLD` (`0x0050`)
-- [ ] `EC_CMD_THERMAL_GET_THRESHOLD` (`0x0051`)
+- [x] `EC_CMD_THERMAL_SET_THRESHOLD` (`0x0050`)
+- [x] `EC_CMD_THERMAL_GET_THRESHOLD` (`0x0051`)
 - [x] `EC_CMD_THERMAL_AUTO_FAN_CTRL` (`0x0052`)
 - [ ] `EC_CMD_TMP006_GET_CALIBRATION` (`0x0053`)
 - [ ] `EC_CMD_TMP006_SET_CALIBRATION` (`0x0054`)
