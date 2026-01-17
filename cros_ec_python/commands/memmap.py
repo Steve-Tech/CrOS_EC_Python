@@ -12,7 +12,7 @@ from ..constants.COMMON import *
 from ..constants.MEMMAP import *
 
 
-def get_temps(ec: CrosEcClass, adjust: int | float = -273) -> list[int | float]:
+def get_temps(ec: CrosEcClass, adjust: int | float = -273) -> list[int | float | None]:
     """
     Get the temperature of all temp sensors.
     :param ec: The CrOS_EC object.
@@ -28,12 +28,12 @@ def get_temps(ec: CrosEcClass, adjust: int | float = -273) -> list[int | float]:
     if version >= 1:
         resp = ec.memmap(EC_MEMMAP_TEMP_SENSOR, EC_TEMP_SENSOR_ENTRIES)
         temps = struct.unpack(f"<{EC_TEMP_SENSOR_ENTRIES}B", resp)
-        ret += [temp + EC_TEMP_SENSOR_OFFSET + adjust for temp in temps if temp < 0xFC]
+        ret += [temp + EC_TEMP_SENSOR_OFFSET + adjust if temp < 0xFC else None for temp in temps if temp < 0xFF]
 
     if version >= 2:
         resp = ec.memmap(EC_MEMMAP_TEMP_SENSOR_B, EC_TEMP_SENSOR_B_ENTRIES)
         temps = struct.unpack(f"<{EC_TEMP_SENSOR_B_ENTRIES}B", resp)
-        ret += [temp + EC_TEMP_SENSOR_OFFSET + adjust for temp in temps if temp < 0xFC]
+        ret += [temp + EC_TEMP_SENSOR_OFFSET + adjust if temp < 0xFC else None for temp in temps if temp < 0xFF]
 
     return ret
 

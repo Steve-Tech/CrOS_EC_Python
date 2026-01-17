@@ -122,7 +122,7 @@ def temp_sensor_get_info(ec: CrosEcClass, sensor_idx: UInt8) -> dict[str, EcTemp
         "type": EcTempSensorType(unpacked[1])
     }
 
-def get_temp_sensors(ec: CrosEcClass) -> dict[str, tuple[int, EcTempSensorType]]:
+def get_temp_sensors(ec: CrosEcClass) -> dict[str, tuple[int | None, EcTempSensorType]]:
     """
     Get information about all temperature sensors.
     :param ec: The CrOS_EC object.

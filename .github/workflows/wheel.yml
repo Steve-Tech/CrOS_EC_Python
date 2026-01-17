@@ -1,8 +1,9 @@
+name: Build Wheel
+
 on: push
 
 jobs:
   build:
-    name: Build Wheel
     runs-on: ubuntu-latest
 
     steps:
