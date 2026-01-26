@@ -4,7 +4,7 @@ import ctypes
 import os
 import sys
 from ctypes import wintypes
-from typing import Iterable
+from collections.abc import Iterable
 
 # Workaround for pdoc failing on Linux
 if os.name == 'nt':
