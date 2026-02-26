@@ -48,6 +48,7 @@ or just manually change the permissions. Read permission is not needed, only wri
 ##### LPC Bus Interface
 
 This library requires access to IO ports using the `CAP_SYS_RAWIO` capability.
+Read/Write permission to `/dev/port` is also required if not using `portio`.
 It's easiest just to run your script as root.
 
 ### Windows
@@ -126,9 +127,13 @@ pdoc cros_ec_python
 - [x] Windows Framework EC Driver
 - [x] Windows [PawnIO](https://pawnio.eu/) using [LpcCrOSEC](https://github.com/namazso/PawnIO.Modules/pull/3)
 - [x] LPC Bus Interface (Soft-requires the [`portio` package](https://pypi.org/project/portio/))
-- [ ] MEC LPC Interface
+- [x] MEC LPC Interface (Soft-requires the [`portio` package](https://pypi.org/project/portio/))
 - [ ] I2C Interface
 - [ ] Servo SPI Interface
+
+#### Known Issues
+
+- There are known ACPI contention issues when using the MEC interface on Framework's Intel 11th, 12th & 13th gen Laptops. There is [more info in this Linux kernel patch](https://lore.kernel.org/chrome-platform/20240605063351.14836-1-ben@jubnut.com/).
 
 ### Supported Commands
 

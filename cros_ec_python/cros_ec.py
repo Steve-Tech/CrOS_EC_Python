@@ -9,7 +9,7 @@ import sys
 
 from .constants.COMMON import *
 from .baseclass import CrosEcClass
-from .devices import lpc
+from .devices import lpc, mec
 if sys.platform == "linux":
     from .devices import dev
 else:
@@ -34,9 +34,11 @@ class DeviceTypes(Enum):
     *Recommended if you have a Framework laptop with a supported BIOS and driver.*
     """
     PawnIO = 2
-    "This is the Windows PawnIO interface, which is recommended on Windows Systems."
+    "This is the Windows PawnIO interface, which is otherwise recommended on Windows Systems."
     LPC = 3
     "This manually talks to the EC over the LPC interface, using the ioports."
+    MEC = 4
+    "This manually talks to the EC over the MEC LPC interface, using the ioports."
 
 
 def pick_device() -> DeviceTypes:
@@ -44,7 +46,10 @@ def pick_device() -> DeviceTypes:
     Pick the device to use. Used by `get_cros_ec`.
     Devices are picked in the following order:
     * `DeviceTypes.LinuxDev` (see `cros_ec_python.devices.dev.CrosEcDev.detect()`)
+    * `DeviceTypes.WinFrameworkEC` (see `cros_ec_python.devices.win_fw_ec.WinFrameworkEc.detect()`)
+    * `DeviceTypes.PawnIO` (see `cros_ec_python.devices.pawnio.CrosEcPawnIO.detect()`)
     * `DeviceTypes.LPC` (see `cros_ec_python.devices.lpc.CrosEcLpc.detect()`)
+    * `DeviceTypes.MEC` (see `cros_ec_python.devices.mec.CrosEcMec.detect()`)
     """
     if dev and dev.CrosEcDev.detect():
         return DeviceTypes.LinuxDev
@@ -54,6 +59,8 @@ def pick_device() -> DeviceTypes:
         return DeviceTypes.PawnIO
     elif lpc and lpc.CrosEcLpc.detect():
         return DeviceTypes.LPC
+    elif mec and mec.CrosEcMec.detect():
+        return DeviceTypes.MEC
     else:
         raise OSError("Could not auto detect device, check you have the required permissions, or specify manually.")
 
@@ -78,5 +85,7 @@ def get_cros_ec(dev_type: DeviceTypes | None = None, **kwargs) -> CrosEcClass:
             return pawnio.CrosEcPawnIO(**kwargs)
         case DeviceTypes.LPC:
             return lpc.CrosEcLpc(**kwargs)
+        case DeviceTypes.MEC:
+            return mec.CrosEcMec(**kwargs)
         case _:
             raise ValueError("Invalid device type.")
