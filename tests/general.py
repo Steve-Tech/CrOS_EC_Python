@@ -1,5 +1,6 @@
 import unittest
 import sys
+import random
 from cros_ec_python import get_cros_ec, ECError, general as ec_general
 
 if sys.platform == "win32":
@@ -8,6 +9,8 @@ else:
      win_fw_ec = None
 
 ec = get_cros_ec()
+
+random.seed(0)  # For reproducibility of random tests
 
 
 class TestProtoVersion(unittest.TestCase):
@@ -86,11 +89,11 @@ class TestCmdVersions(unittest.TestCase):
 
 class TestTestProtocol(unittest.TestCase):
     def test_version0(self):
-        length = 32
-        buf = bytes(range(length))
-        resp = ec_general.test_protocol(ec, 0, length, buf)
-        print(type(self).__name__, "-", resp)
-        self.assertEqual(resp, buf)
+        for length in range(0, 8):
+            buf = random.randbytes(length)
+            resp = ec_general.test_protocol(ec, 0, length, buf)
+            print(type(self).__name__, "-", resp)
+            self.assertEqual(resp, buf)
 
     def test_error(self):
         with self.assertRaises(ECError):
@@ -102,7 +105,7 @@ class TestTestProtocol(unittest.TestCase):
     )
     def test_warning(self):
         with self.assertWarns(RuntimeWarning):
-            length = 16
+            length = 8
             buf = bytes(range(length))
             resp = ec_general.test_protocol(ec, 0, length, buf, length * 2)
             print(type(self).__name__, "-", resp)
