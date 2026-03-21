@@ -8,7 +8,7 @@ As well as a higher-level abstracted interface for easy access to some of the mo
 
 ## Installation
 
-### Linux
+### Linux & FreeBSD
 
 > [!NOTE]
 > Don't forget to read the [permissions](#permissions) section below.
@@ -19,13 +19,13 @@ For a basic installation with full Linux Device support, run:
 pip install cros-ec-python
 ```
 
-Some interfaces require additional dependencies, for example the LPC interface performs best with the `portio` package:
+Some interfaces require additional dependencies, for example the LPC & MEC interface performs best with the `portio` package:
 
 ```bash
 pip install cros-ec-python[lpc]
 ```
 
-#### Permissions
+#### Linux Permissions
 
 Since we're playing around with actual hardware, we're going to need some pretty high permissions.
 
@@ -56,7 +56,7 @@ It's easiest just to run your script as root.
 > [!NOTE]
 > Loading a driver will likely require administrator permissions, so you may need to run your script as an administrator.
 
-The Windows version supports 3 different drivers to access the EC:
+The Windows version supports 3 different drivers to access the EC (only one is required):
 
 - The Framework EC driver which is provided in the driver bundles and requires a supported BIOS version. This driver does not require administrator and is the recommended way of using CrOS_EC_Python on supported devices.
 - `PawnIO` which is a fairly new scriptable kernel driver, the official signed version can be downloaded [here](https://pawnio.eu/).
@@ -76,7 +76,7 @@ pip install cros-ec-python
 [PawnIO](https://pawnio.eu/) can be installed using the installer from the website.
 PawnIO is signed and does not require disabling driver signature enforcement.
 
-You will also need to download the [`LpcCrOSEC`](https://github.com/namazso/PawnIO.Modules/pull/3) module, and copy it to your working directory.
+You will also need to download the [latest release](https://github.com/namazso/PawnIO.Modules/releases/) of the PawnIO modules and copy `LpcCrOSEC.bin` to your working directory.
 
 #### WinRing0
 
@@ -125,7 +125,7 @@ pdoc cros_ec_python
 
 - [x] Linux Device (Requires the `cros_ec_dev` kernel module)
 - [x] Windows Framework EC Driver
-- [x] Windows [PawnIO](https://pawnio.eu/) using [LpcCrOSEC](https://github.com/namazso/PawnIO.Modules/pull/3)
+- [x] Windows [PawnIO](https://pawnio.eu/) using [LpcCrOSEC](https://github.com/namazso/PawnIO.Modules/releases/)
 - [x] LPC Bus Interface (Soft-requires the [`portio` package](https://pypi.org/project/portio/))
 - [x] MEC LPC Interface (Soft-requires the [`portio` package](https://pypi.org/project/portio/))
 - [ ] I2C Interface
